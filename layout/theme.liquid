@@ -1,573 +1,169 @@
-< !doctype html><html lang="{{ request.locale.iso_code }}"><head> {
-  % # Inlined CSS Variables %
-}
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    {% # Inlined CSS Variables %}
+    {% render 'css-variables' %}
 
-  {
-  % render 'css-variables' %
-}
+    {% # Load and preload the critical CSS %}
+    {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
 
-  {
-  % # Load and preload the critical CSS %
-}
+    {% # Social, title, etc. %}
+    {% render 'meta-tags' %}
 
-  {
-    {
-    'critical.css' | asset_url | stylesheet_tag: preload: true
-  }
-}
+    {{ content_for_header }}
 
-  {
-  % # Social,
-  title,
-  etc. %
-}
+   {%- comment -%} Load selected fonts (@font-face) {%- endcomment -%}
+<style>
+  {{ settings.font_heading | font_face: font_display: 'swap' }}
+  {{ settings.font_body    | font_face: font_display: 'swap' }}
+  {{ settings.font_misc    | font_face: font_display: 'swap' }}
+</style>
 
-  {
-  % render 'meta-tags' %
-}
+{%- comment -%} Map theme settings → CSS custom properties {%- endcomment -%}
+<style>
+  :root{
+    /* ---------------------------------------------
+       Typography (families)
+       --------------------------------------------- */
+    --t-font-heading: {{ settings.font_heading.family | json }}, {{ settings.font_heading.fallback_families | json }};
+    --t-font-body: {{ settings.font_body.family | json }}, {{ settings.font_body.fallback_families | json }};
+    --t-font-misc: {{ settings.font_misc.family | json }}, {{ settings.font_misc.fallback_families | json }};
 
-  {
-    {
-    content_for_header
-  }
-}
+    /* Base body text tokens */
+    --t-body-size: {{ settings.body_font_size | default: 16 }}px;
+    --t-body-lh: {{ settings.body_line_height | default: 1.2 }};
+    --t-body-tracking: {{ settings.body_letter_spacing | default: 0 }}em;
 
-  {
-  %- comment -%
-}
+    /* Heading scale ratio from selector */
+    {%- assign hs = settings['header-scaling'] -%}
+    {%- case hs -%}
+      {%- when 'minor_second'   -%}{%- assign h_ratio = 1.067 -%}
+      {%- when 'major_second'   -%}{%- assign h_ratio = 1.125 -%}
+      {%- when 'minor_third'    -%}{%- assign h_ratio = 1.200 -%}
+      {%- when 'major_third'    -%}{%- assign h_ratio = 1.250 -%}
+      {%- when 'perfect_forth'  -%}{%- assign h_ratio = 1.333 -%}
+      {%- when 'augmented_forth'-%}{%- assign h_ratio = 1.414 -%}
+      {%- when 'perfect_fifth'  -%}{%- assign h_ratio = 1.500 -%}
+      {%- when 'golden_ratio'   -%}{%- assign h_ratio = 1.618 -%}
+      {%- else -%}{%- assign h_ratio = 1.333 -%} {# default #}
+    {%- endcase -%}
+    --t-heading-ratio: {{ h_ratio }};
 
-Load selected fonts (@font-face). Must be in <style>so Shopify serves the faces. {
-  %- endcomment -%
-}
+    /* Heading rhythm */
+    --t-heading-lh: {{ settings.header_line_height | default: 1.2 }};
+    --t-heading-tracking: {{ settings.header_letter_spacing | default: 0 }}em;
 
-<style> {
-    {
-    settings.font_heading | font_face: font_display: 'swap'
-  }
-}
+    /* ---------------------------------------------
+       Colors
+       --------------------------------------------- */
+    --c-bg: {{ settings.color_bg }};
+    --c-alt-bg: {{ settings.color_alt_bg }};
+    --c-text: {{ settings.color_text }};
+    --c-primary: {{ settings.color_primary }};
+    --c-secondary: {{ settings.color_secondary }};
+    --c-tertiary: {{ settings.color_tertiary }};
+    --c-misc: {{ settings.color_misc }};
 
-  {
-    {
-    settings.font_body | font_face: font_display: 'swap'
-  }
-}
-
-</style> {
-  %- comment -%
-}
-
-Map theme settings → CSS custom properties {
-  %- endcomment -%
-}
-
-<style> :root {
-
-  /* ----------------------------------------------------
-       Typography
-       ---------------------------------------------------- */
-  --t-font-heading: {
-      {
-      settings.font_heading.family | json
-    }
-  }
-
-  ,
-  {
-    {
-    settings.font_heading.fallback_families | json
-  }
-}
-
-;
-
---t-font-body: {
-    {
-    settings.font_body.family | json
-  }
-}
-
-,
-{
-  {
-  settings.font_body.fallback_families | json
-}
-}
-
-;
-
---t-scale: {
-    {
-    settings.type_scale | default: 100 | times: 0.01
-  }
-}
-
-;
-
---t-lh: {
-    {
-    settings.line_height | default: 140 | times: 0.01
-  }
-}
-
-;
-
---t-tracking: {
-    {
-    settings.letter_spacing | default: 0
-  }
-}
-
-px;
-
-/* ----------------------------------------------------
-       Colors (light)
-       ---------------------------------------------------- */
---c-bg: {
-    {
-    settings.color_bg
-  }
-}
-
-;
-
---c-surface: {
-    {
-    settings.color_surface
-  }
-}
-
-;
-
---c-text: {
-    {
-    settings.color_text
-  }
-}
-
-;
-
---c-muted: {
-    {
-    settings.color_muted
-  }
-}
-
-;
-
---c-primary: {
-    {
-    settings.color_primary
-  }
-}
-
-;
-
---c-secondary: {
-    {
-    settings.color_secondary
-  }
-}
-
-;
-
-/* ----------------------------------------------------
+    /* ---------------------------------------------
        Layout & spacing
-       ---------------------------------------------------- */
---container-max: {
-    {
-    settings.container_max | default: 1240
-  }
-}
+       --------------------------------------------- */
+    --container-max: {{ settings.site_max | default: 1200 }}px;
+    --gutter: {{ settings.gutter | default: 20 }}px;
 
-px;
-
---gutter: {
-    {
-    settings.gutter | default: 20
-  }
-}
-
-px;
-
---space-scale: {
-    {
-    settings.space_scale | default: 100 | times: 0.01
-  }
-}
-
-;
-
-/* ----------------------------------------------------
+    /* ---------------------------------------------
        Shape & elevation
-       ---------------------------------------------------- */
---radius: {
-    {
-    settings.radius | default: 8
+       --------------------------------------------- */
+    --radius: {{ settings.radius | default: 8 }}px;
+    --shadow-depth: {{ settings.shadow_depth | default: 1 }};
+    --elevation-0: 0 0 0 rgba(0,0,0,0);
+    --elevation-1: 0 1px 2px rgba(0,0,0,.08);
+    --elevation-2: 0 4px 10px rgba(0,0,0,.10);
+    --elevation-3: 0 10px 20px rgba(0,0,0,.12);
+
+    /* ---------------------------------------------
+       Icons & motion
+       --------------------------------------------- */
+    --icon-pack: "{{ settings.icon_pack | default: 'outline' }}";
+    --icon-stroke: {{ settings.icon_stroke | default: 2 }};
+    --motion: {{ settings.motion_speed | default: 100 | times: 0.01 }};
+
+    /* ---------------------------------------------
+       Header & navigation
+       --------------------------------------------- */
+    --header-sticky: {% if settings.header_sticky %}1{% else %}0{% endif %};
+    --header-height: {{ settings.header_height | default: 64 }}px;
+    --menu-style: "{{ settings.menu_style | default: 'classic' }}";
+    --cart-type: "{{ settings.cart_type | default: 'drawer' }}";
+
+    /* ---------------------------------------------
+       Buttons
+       --------------------------------------------- */
+    --btn-shape: "{{ settings.btn_shape | default: 'soft' }}";
+    --btn-radius: {% if settings.btn_shape == 'pill' %}999px{% elsif settings.btn_shape == 'square' %}0px{% else %}{{ settings.radius | default: 8 }}px{% endif %};
+    --btn-weight: "{{ settings.btn_weight | default: 'solid' }}";
+    --btn-uppercase: {% if settings.btn_uppercase %}1{% else %}0{% endif %};
+
+    /* ---------------------------------------------
+       Cards
+       --------------------------------------------- */
+    --card-radius: {{ settings.card_radius | default: 8 }}px;
+    --card-shadow-depth: {{ settings.card_shadow | default: 1 }};
+    --card-pad-x: {{ settings.card_padding_x | default: 16 }}px;
+    --card-pad-y: {{ settings.card_padding_y | default: 16 }}px;
+
+    /* ---------------------------------------------
+       Images & media
+       --------------------------------------------- */
+    --img-ratio-default: "{{ settings.image_ratio_default | default: 'auto' }}";
+    --img-soft-corners: {% if settings.image_soft_corners %}1{% else %}0{% endif %};
+    --img-lazy: {% if settings.image_lazy %}1{% else %}0{% endif %};
+
+    /* ---------------------------------------------
+       Product defaults
+       --------------------------------------------- */
+    --prod-quick-add: {% if settings.show_quick_add %}1{% else %}0{% endif %};
+    --prod-second-image: {% if settings.show_second_image_on_hover %}1{% else %}0{% endif %};
+    --prod-compare-price: {% if settings.show_price_compare %}1{% else %}0{% endif %};
+    --prod-badges: {% if settings.show_badges %}1{% else %}0{% endif %};
+    --grid-cols-desktop: {{ settings.grid_columns_desktop | default: 4 }};
+
+    /* ---------------------------------------------
+       Search & quick view
+       --------------------------------------------- */
+    --predictive-search: {% if settings.enable_predictive_search %}1{% else %}0{% endif %};
+    --quick-view: {% if settings.enable_quick_view %}1{% else %}0{% endif %};
+
+    /* ---------------------------------------------
+       Accessibility & UX
+       --------------------------------------------- */
+    --focus-outline-always: {% if settings.focus_outline_always %}1{% else %}0{% endif %};
+    --respect-reduced-motion: {% if settings.respect_reduced_motion %}1{% else %}0{% endif %};
+    --skip-links-enabled: {% if settings.enable_skip_links %}1{% else %}0{% endif %};
   }
-}
+</style>
 
-px;
+{%- assign base = settings.body_font_size | default: 16 -%}
+{%- assign r = h_ratio -%}
+<style>
+  h6 { font-size: {{ base | times: r | round: 2 }}px; }
+  h5 { font-size: {{ base | times: r | times: r | round: 2 }}px; }
+  h4 { font-size: {{ base | times: r | times: r | times: r | round: 2 }}px; }
+  h3 { font-size: {{ base | times: r | times: r | times: r | times: r | round: 2 }}px; }
+  h2 { font-size: {{ base | times: r | times: r | times: r | times: r | times: r | round: 2 }}px; }
+  h1 { font-size: {{ base | times: r | times: r | times: r | times: r | times: r | times: r | round: 2 }}px; }
+</style>
 
---shadow-depth: {
-    {
-    settings.shadow_depth | default: 1
-  }
-}
 
-;
 
-/* Shadow scale tokens (hooks for components) */
---elevation-0: 0 0 0 rgba(0, 0, 0, 0);
---elevation-1: 0 1px 2px rgba(0, 0, 0, .08);
---elevation-2: 0 4px 10px rgba(0, 0, 0, .10);
---elevation-3: 0 10px 20px rgba(0, 0, 0, .12);
+{{ 'base.css' | asset_url | stylesheet_tag: preload: true }}
 
-/* ----------------------------------------------------
-    Icons & motion
-    ---------------------------------------------------- */
---icon-pack: "{{ settings.icon_pack | default: 'outline' }}";
+  </head>
 
---icon-stroke: {
-    {
-    settings.icon_stroke | default: 2
-  }
-}
+  <body>
+    {% sections 'header-group' %}
 
-;
+    {{ content_for_layout }}
 
---motion: {
-    {
-    settings.motion_speed | default: 100 | times: 0.01
-  }
-}
-
-;
-
-/* ----------------------------------------------------
-    Header & navigation
-    ---------------------------------------------------- */
---header-sticky: {
-  % if settings.header_sticky %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
---header-height: {
-    {
-    settings.header_height | default: 64
-  }
-}
-
-px;
---menu-style: "{{ settings.menu_style | default: 'classic' }}";
---cart-type: "{{ settings.cart_type | default: 'drawer' }}";
-
-/* ----------------------------------------------------
-    Buttons
-    ---------------------------------------------------- */
-/* shape derives from theme radius unless pill/square */
---btn-shape: "{{ settings.btn_shape | default: 'soft' }}";
-
-/* soft | pill | square */
---btn-radius: {
-  % if settings.btn_shape=='pill' %
-}
-
-999px {
-  % elsif settings.btn_shape=='square' %
-}
-
-0px {
-  % else %
-}
-
-  {
-    {
-    settings.radius | default: 8
-  }
-}
-
-px {
-  % endif %
-}
-
-;
---btn-weight: "{{ settings.btn_weight | default: 'solid' }}";
-
-/* solid | outline | ghost */
---btn-uppercase: {
-  % if settings.btn_uppercase %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
-/* ----------------------------------------------------
-    Cards (surfaces)
-    ---------------------------------------------------- */
---card-radius: {
-    {
-    settings.card_radius | default: 8
-  }
-}
-
-px;
-
---card-shadow-depth: {
-    {
-    settings.card_shadow | default: 1
-  }
-}
-
-;
-
---card-pad-x: {
-    {
-    settings.card_padding_x | default: 16
-  }
-}
-
-px;
-
---card-pad-y: {
-    {
-    settings.card_padding_y | default: 16
-  }
-}
-
-px;
-
-/* ----------------------------------------------------
-    Images & media
-    ---------------------------------------------------- */
---img-ratio-default: "{{ settings.image_ratio_default | default: 'auto' }}";
-
-/* auto | 1-1 | 4-5 | 3-2 */
---img-soft-corners: {
-  % if settings.image_soft_corners %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
---img-lazy: {
-  % if settings.image_lazy %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
-/* ----------------------------------------------------
-    Product defaults
-    ---------------------------------------------------- */
---prod-quick-add: {
-  % if settings.show_quick_add %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
---prod-second-image: {
-  % if settings.show_second_image_on_hover %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
---prod-compare-price: {
-  % if settings.show_price_compare %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
---prod-badges: {
-  % if settings.show_badges %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
---grid-cols-desktop: {
-    {
-    settings.grid_columns_desktop | default: 4
-  }
-}
-
-;
-
-/* ----------------------------------------------------
-    Search & quick view
-    ---------------------------------------------------- */
---predictive-search: {
-  % if settings.enable_predictive_search %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
---quick-view: {
-  % if settings.enable_quick_view %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
-/* ----------------------------------------------------
-    Accessibility & UX
-    ---------------------------------------------------- */
---focus-outline-always: {
-  % if settings.focus_outline_always %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
---respect-reduced-motion: {
-  % if settings.respect_reduced_motion %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-
---skip-links-enabled: {
-  % if settings.enable_skip_links %
-}
-
-1 {
-  % else %
-}
-
-0 {
-  % endif %
-}
-
-;
-}
-
-/* Optional dark mode mapping (auto) */
-  {
-  % if settings.dark_mode_auto %
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --c-bg: #0b0b0b;
-    --c-surface: #161616;
-    --c-text: #f3f3f3;
-    --c-muted: #9ca3af;
-    /* You can also tone primary/secondary if desired */
-  }
-}
-
-  {
-  % endif %
-}
-
-</style> {
-    {
-    'base.css' | asset_url | stylesheet_tag: preload: true
-  }
-}
-
-</head><body> {
-  % sections 'header-group' %
-}
-
-  {
-    {
-    content_for_layout
-  }
-}
-
-  {
-  % sections 'footer-group' %
-}
-
-</body>
+    {% sections 'footer-group' %}
+  </body>
 </html>

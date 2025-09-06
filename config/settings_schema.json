@@ -9,27 +9,20 @@
   },
   {
     "name": "Design system",
-    "settings": [
-      { "type": "header", "content": "Typography" },
-      { "type": "font_picker", "id": "font_heading", "label": "Heading font", "default": "system-ui" },
-      { "type": "font_picker", "id": "font_body", "label": "Body font", "default": "system-ui" },
-      { "type": "range", "id": "type_scale", "label": "Type size scale", "min": 90, "max": 115, "step": 1, "unit": "%", "default": 100 },
-      { "type": "range", "id": "line_height", "label": "Line height scale", "min": 100, "max": 160, "step": 2, "unit": "%", "default": 140 },
-      { "type": "range", "id": "letter_spacing", "label": "Letter spacing", "min": -2, "max": 4, "step": 0.5, "unit": "px", "default": 0 },
+    "settings": [      
 
       { "type": "header", "content": "Color" },
       { "type": "color", "id": "color_bg", "label": "Background", "default": "#ffffff" },
-      { "type": "color", "id": "color_surface", "label": "Surface", "default": "#f6f6f6" },
-      { "type": "color", "id": "color_text", "label": "Text", "default": "#111111" },
-      { "type": "color", "id": "color_muted", "label": "Muted text", "default": "#6b7280" },
-      { "type": "color", "id": "color_primary", "label": "Primary", "default": "#1f6feb" },
-      { "type": "color", "id": "color_secondary", "label": "Secondary", "default": "#ef4444" },
-      { "type": "checkbox", "id": "dark_mode_auto", "label": "Enable dark mode (auto)", "default": false },
+      { "type": "color", "id": "color_alt_bg", "label": "Alt Background", "default": "#dfdfdf" },
+      { "type": "color", "id": "color_text", "label": "Text", "default": "#121212" },
+      { "type": "color", "id": "color_primary", "label": "Primary", "default": "#E43939" },
+      { "type": "color", "id": "color_secondary", "label": "Secondary", "default": "#E48D39" },
+      { "type": "color", "id": "color_tertiary", "label": "Tertiary", "default": "#39E4D5" },
+      { "type": "color", "id": "color_misc", "label": "Miscellaneous", "default": "#ef4444" },
 
       { "type": "header", "content": "Layout & spacing" },
-      { "type": "range", "id": "container_max", "label": "Container max width", "min": 1040, "max": 1440, "step": 20, "unit": "px", "default": 1240 },
-      { "type": "range", "id": "gutter", "label": "Gutter (grid gap)", "min": 8, "max": 32, "step": 2, "unit": "px", "default": 20 },
-      { "type": "range", "id": "space_scale", "label": "Section spacing scale", "min": 80, "max": 140, "step": 5, "unit": "%", "default": 100 },
+      { "type": "range", "id": "site_max", "label": "Site max width", "min": 900, "max": 1600, "step": 20, "unit": "px", "default": 1200 },
+      { "type": "range", "id": "gutter", "label": "Gutter (grid gap)", "min": 4, "max": 40, "step": 2, "unit": "px", "default": 20 },
 
       { "type": "header", "content": "Shape & elevation" },
       { "type": "range", "id": "radius", "label": "Corner radius", "min": 0, "max": 24, "step": 2, "unit": "px", "default": 8 },
@@ -43,6 +36,29 @@
       ], "default": "outline" },
       { "type": "range", "id": "icon_stroke", "label": "Icon stroke width", "min": 1, "max": 5, "step": 1, "default": 2 },
       { "type": "range", "id": "motion_speed", "label": "Animation speed", "min": 75, "max": 150, "step": 5, "unit": "%", "default": 100 }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      { "type": "font_picker", "id": "font_heading", "label": "Heading font", "default": "work_sans_n7" },
+      { "type": "font_picker", "id": "font_body", "label": "Body font", "default": "work_sans_n4" },
+      { "type": "font_picker", "id": "font_misc", "label": "Miscellaneous font", "default": "work_sans_n2" },
+      { "type": "range", "id": "body_font_size", "label": "Body font size", "min": 10, "max": 40, "step": 1, "unit": "px", "default": 16 },
+      { "type": "range", "id": "body_line_height", "label": "Body line height", "min": 0.6, "max": 3, "step": 0.1, "unit": "em", "default": 1.2 },
+      { "type": "range", "id": "body_letter_spacing", "label": "Body letter spacing", "min": -1, "max": 1, "step": 0.1, "unit": "em", "default": 0 },
+      { "type": "select", "id": "header-scaling", "label": "Header Scaling", "options": [
+        { "value": "minor_second", "label": "Minor Second" },
+        { "value": "major_second", "label": "Major Second" },
+        { "value": "minor_third", "label": "Minor Third" },
+        { "value": "major_third", "label": "Major Third" },
+        { "value": "perfect_forth", "label": "Perfect Forth" },
+        { "value": "augmented_forth", "label": "Augmented Forth" },
+        { "value": "perfect_fifth", "label": "Perfect Fifth" },
+        { "value": "golden_ratio", "label": "Golden Ratio" }
+      ], "default": "perfect_forth" },
+      { "type": "range", "id": "header_line_height", "label": "Header line height", "min": 0.6, "max": 3, "step": 0.1, "unit": "em", "default": 1.2 },
+      { "type": "range", "id": "header_letter_spacing", "label": "Header letter spacing", "min": -1, "max": 1, "step": 0.1, "unit": "em", "default": 0 }
     ]
   },
   {
