@@ -75,7 +75,7 @@ Each section:
 
 ## License
 - Based on [Shopify Dawn](https://github.com/Shopify/dawn) (MIT license).  
-- All custom work © 2025 [Your Studio].  
+- All custom work © 2025 Onwards + Upwards.  
 - See `LICENSE` for details.
 
 ---
