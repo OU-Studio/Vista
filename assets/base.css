@@ -1,0 +1,37 @@
+/* Header */
+.header { height: var(--header-height); position: sticky; top: 0; }
+@supports (position: sticky) {
+  .header { position: calc(var(--header-sticky) * 1px) ? sticky : static; } /* if you prefer, toggle class in Liquid instead */
+}
+
+/* Buttons */
+.button {
+  border-radius: var(--btn-radius);
+  text-transform: calc(var(--btn-uppercase)) ? uppercase : none; /* or toggle a class via Liquid */
+}
+.button--solid   { background: var(--c-primary); color: #fff; }
+.button--outline { background: transparent; border: 1px solid currentColor; }
+.button--ghost   { background: transparent; }
+
+/* Cards */
+.card {
+  border-radius: var(--card-radius);
+  padding: var(--card-pad-y) var(--card-pad-x);
+  box-shadow: var(--elevation-1);
+}
+[data-card-shadow="0"] .card { box-shadow: var(--elevation-0); }
+[data-card-shadow="2"] .card { box-shadow: var(--elevation-2); }
+[data-card-shadow="3"] .card { box-shadow: var(--elevation-3); }
+
+/* Images */
+.img--soft { border-radius: calc(var(--img-soft-corners) * 8px); }
+.ratio--1-1 { aspect-ratio: 1 / 1; }
+.ratio--4-5 { aspect-ratio: 4 / 5; }
+.ratio--3-2 { aspect-ratio: 3 / 2; }
+
+/* Accessibility helpers */
+:root { --focus-ring: 2px solid #4B9FFF; }
+:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion: 0.6; }
+}
