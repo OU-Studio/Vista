@@ -10,6 +10,14 @@
 {
   "current": {
     "default_color_scheme": "scheme-1",
+    "font_heading": "montserrat_n7",
+    "font_body": "montserrat_n5",
+    "font_misc": "montserrat_n5",
+    "body_font_size": 16,
+    "body_line_height": 1,
+    "body_letter_spacing": "0",
+    "header-scaling": "major_third",
+    "header_line_height": 1,
     "order": [],
     "settings": {
       "default_color_scheme": "scheme-1"

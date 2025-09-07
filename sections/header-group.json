@@ -13,10 +13,25 @@
   "sections": {
     "header": {
       "type": "header",
-      "settings": {}
+      "settings": {
+        "logo": "shopify://shop_images/OU-Logo-Blue-Purple.png",
+        "logo_alt": "",
+        "logo_width": 140,
+        "menu": "main-menu",
+        "header_height": 64,
+        "layout_variant": "normal",
+        "transparent_on_home": false,
+        "layout_alignment": "logo_center_nav_left",
+        "show_search": true,
+        "show_account": true,
+        "show_cart": true,
+        "show_announcement": false,
+        "announcement_text": "Welcome to our store!",
+        "color_scheme": ""
+      }
     }
   },
   "order": [
     "header"
-  ],
+  ]
 }

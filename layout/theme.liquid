@@ -57,10 +57,11 @@
         /* Base type scale */
         --t-body-size: {{ settings.body_font_size | default: 16 }}px;
         --t-body-lh:   {{ settings.body_line_height | default: 1.2 }};
-        --t-body-tracking: {{ settings.body_letter_spacing | default: 0 }}em;
         --t-heading-ratio: {{ h_ratio }};
         --t-heading-lh: {{ settings.header_line_height | default: 1.2 }};
-        --t-heading-tracking: {{ settings.header_letter_spacing | default: 0 }}em;
+        --t-body-tracking: {{ settings.body_letter_spacing }}em;
+        --t-heading-tracking: {{ settings.header_letter_spacing }}em;
+
 
         /* Layout & spacing */
         --container-max: {{ settings.site_max | default: 1200 }}px;
