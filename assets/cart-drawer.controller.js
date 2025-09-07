@@ -37,21 +37,57 @@ export function init(root) {
     setTimeout(() => { drawer.hidden = true; }, 220);
   }
 
-  async function refresh() {
+async function refresh() {
+  const url = `${ROOT}cart.js?ts=${Date.now()}`;
+  console.log('[cart] refresh() about to fetch:', url);
+
+  const ac = new AbortController();
+  const timeout = setTimeout(() => {
+    ac.abort();
+    console.warn('[cart] fetch timed out (aborted)');
+  }, 7000);
+
+  try {
+    if (bodyEl) bodyEl.innerHTML = `<div class="cart-drawer__loading">Loading…</div>`;
+
+    const res = await fetch(url, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' },
+      signal: ac.signal
+    });
+    clearTimeout(timeout);
+
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    console.log('[cart] fetch status:', res.status, res.ok, 'content-type:', ct, 'url:', res.url);
+
+    const raw = await res.text();
+    // Try JSON first even if content-type is wrong
+    let cart = null;
     try {
-      console.log('[cart] refresh() → GET cart.js');
-      if (bodyEl) bodyEl.innerHTML = `<div class="cart-drawer__loading">Loading…</div>`;
-      const res = await fetch(`${ROOT}cart.js`, { credentials:'same-origin', headers:{ 'Accept':'application/json' } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const cart = await res.json();
-      console.log('[cart] cart:', cart);
-      render(cart);
-      updateBadge(cart.item_count || 0);
-    } catch (err) {
-      console.error('[cart] refresh error:', err);
-      if (bodyEl) bodyEl.innerHTML = `<div class="cart-drawer__loading">Couldn’t load cart</div>`;
+      // fast check: JSON usually starts with { or [
+      const firstChar = raw.trim()[0];
+      if (firstChar === '{' || firstChar === '[') {
+        cart = JSON.parse(raw);
+      } else {
+        throw new Error('not-json-leading-char');
+      }
+    } catch (e) {
+      console.warn('[cart] payload is not plain JSON. First 400 chars:\n', raw.slice(0, 400));
+      throw new Error('Expected JSON from /cart.js');
     }
+
+    console.log('[cart] cart payload:', cart);
+    render(cart);
+    updateBadge(cart.item_count || 0);
+  } catch (err) {
+    clearTimeout(timeout);
+    console.error('[cart] refresh error:', err);
+    if (bodyEl) bodyEl.innerHTML = `<div class="cart-drawer__loading">Couldn’t load cart</div>`;
   }
+}
+
+
 
   function updateBadge(count) {
     document.querySelectorAll('[data-cart-count]').forEach(el => el.textContent = count);
@@ -89,27 +125,72 @@ export function init(root) {
 
   function escapeHtml(s=''){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&gt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
 
-  // Wire clicks
-  function onOpenClick(e) {
-    if (!isDrawerMode()) return; // in "page" mode, let it navigate
-    e.preventDefault();
-    open();
-  }
-  openEls.forEach(el => el.addEventListener('click', onOpenClick));
-  closeEls.forEach(el => el.addEventListener('click', close));
-  overlay?.addEventListener('click', close);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  // --- WIRING (robust) -------------------------------------------------
 
-  // Expose manual test
-  window.cartDrawerDebugOpen = open;
+// 1) Log the environment
+console.log('[cart] wired', {
+  openers: openEls.length,
+  hasBody: !!bodyEl,
+  cartType: document.body.dataset.cartType || 'drawer'
+});
 
-  console.log('[cart] wired', { openers: openEls.length, hasBody: !!bodyEl });
+// 2) Force drawer mode for debugging (comment this out later if needed)
+// const isDrawerMode = () => true; // <— uncomment to hard-force drawer during debug
 
-  return {
-    destroy() {
-      openEls.forEach(el => el.removeEventListener('click', onOpenClick));
-      closeEls.forEach(el => el.removeEventListener('click', close));
-      overlay?.removeEventListener('click', close);
+// 3) Direct listeners for existing buttons
+function onOpenClick(e) {
+  if (!isDrawerMode()) return; // in "page" mode, let it navigate
+  e.preventDefault();
+  console.log('[cart] opener clicked (direct listener)');
+  open();
+}
+openEls.forEach(el => el.addEventListener('click', onOpenClick));
+
+// 4) Delegated listener for dynamically-added buttons
+function onDelegatedClick(e) {
+  const btn = e.target?.closest?.('[data-cart-open]');
+  if (!btn) return;
+  if (!isDrawerMode()) return;
+  e.preventDefault();
+  console.log('[cart] opener clicked (delegated)');
+  open();
+}
+document.addEventListener('click', onDelegatedClick);
+
+// 5) Listen for programmatic opens from anywhere: window.dispatchEvent(new Event('cart:open'))
+function onProgrammaticOpen() {
+  console.log('[cart] programmatic open event');
+  open();
+}
+window.addEventListener('cart:open', onProgrammaticOpen);
+
+// 6) Observer: if open buttons are injected later, attach direct listeners too (optional)
+const mo = new MutationObserver(() => {
+  document.querySelectorAll('[data-cart-open]').forEach(el => {
+    if (!el.__cartOpenBound) {
+      el.addEventListener('click', onOpenClick);
+      el.__cartOpenBound = true;
     }
-  };
+  });
+});
+mo.observe(document.documentElement, { childList: true, subtree: true });
+
+// 7) Close wiring
+closeEls.forEach(el => el.addEventListener('click', close));
+overlay?.addEventListener('click', close);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+// 8) Expose manual test
+window.cartDrawerDebugOpen = open;
+
+return {
+  destroy() {
+    openEls.forEach(el => el.removeEventListener('click', onOpenClick));
+    document.removeEventListener('click', onDelegatedClick);
+    window.removeEventListener('cart:open', onProgrammaticOpen);
+    overlay?.removeEventListener('click', close);
+    mo.disconnect();
+  }
+};
+
 }
