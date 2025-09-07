@@ -116,7 +116,7 @@ Relies on global tokens (header height, colors, radius, etc.)
 
         {% if section.settings.show_cart %}
         <a class="hdr__util hdr__cart" href="{{ routes.cart_url }}"
-          aria-label="{{ 'general.accessibility.cart' | t | default: 'Cart' }}">
+          aria-label="{{ 'general.accessibility.cart' | t | default: 'Cart' }}" data-cart-open>
           {% render 'icon', name: 'cart' %}
 
           <span class="hdr__cart-count" data-cart-count>

@@ -132,7 +132,7 @@
     {{ 'base.css'     | asset_url | stylesheet_tag: preload: true }}
   </head>
 
-  <body class="color-scheme color-scheme-{{ settings.default_color_scheme | default: 'scheme-1' }}">
+  <body class="color-scheme color-scheme-{{ settings.default_color_scheme | default: 'scheme-1' }}" data-cart-type="{{ settings.cart_type }}">
     {% sections 'header-group' %}
 
     <main class="color-scheme color-scheme-{{ settings.default_color_scheme }}">
@@ -140,5 +140,14 @@
     </main>
 
     {% sections 'footer-group' %}
+
+    {% if settings.cart_type == 'drawer' %}
+      {% render 'cart-drawer' %}
+   {% endif %}
+
+   {%- comment -%} Load once on every page {%- endcomment -%}
+<script type="module" src="{{ 'main.js' | asset_url }}"></script>
+
+
   </body>
 </html>
