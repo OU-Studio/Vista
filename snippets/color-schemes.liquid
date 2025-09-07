@@ -1,0 +1,113 @@
+{%- comment -%}
+Emits CSS variables for each defined color scheme.
+
+Supports:
+- Built-in `color_schemes` (background, foreground, foreground_secondary, accent, button, button_text)
+- `color_scheme_group` with your custom ids:
+  background_color, header_background_color, text_color, text_muted_color,
+  brand_primary_color, brand_secondary_color,
+  button_primary_bg, button_primary_text, button_secondary_bg, button_secondary_text,
+  surface_bg, border_color
+
+Usage (in theme.liquid <head> BEFORE stylesheets):
+  {% render 'color-schemes' %}
+
+Use per element/section:
+  <section class="color-scheme color-scheme-{{ section.settings.color_scheme }}">…</section>
+{%- endcomment -%}
+
+{% style %}
+  {%- assign default_id = settings.default_color_scheme | default: 'scheme-1' -%}
+
+  {%- for scheme in settings.color_schemes -%}
+    {%- assign id = scheme.id -%}
+
+    {%- comment %}
+    Resolve fields from either native or group model.
+    Each ends up as a color object (supports .rgba / .rgb).
+    {%- endcomment -%}
+    {%- assign bg           = scheme.settings.background           | default: scheme.settings.background_color -%}
+    {%- assign fg           = scheme.settings.foreground           | default: scheme.settings.text_color -%}
+    {%- assign fg_secondary = scheme.settings.foreground_secondary | default: scheme.settings.text_muted_color -%}
+    {%- assign accent       = scheme.settings.accent               | default: scheme.settings.brand_primary_color -%}
+    {%- assign btn_bg       = scheme.settings.button               | default: scheme.settings.button_primary_bg -%}
+    {%- assign btn_text     = scheme.settings.button_text          | default: scheme.settings.button_primary_text -%}
+
+    {%- assign header_bg    = scheme.settings.header_background_color -%}
+    {%- assign brand2       = scheme.settings.brand_secondary_color -%}
+    {%- assign surface      = scheme.settings.surface_bg -%}
+    {%- assign border_col   = scheme.settings.border_color -%}
+
+    {%- if id == default_id -%}
+      :root,
+    {%- endif -%}
+    .color-scheme.color-scheme-{{ id }} {
+      /* ===== Core tokens (Shopify standard) ===== */
+      --color-background: rgb({{ bg.rgba }});
+      --color-background-rgb: {{ bg.rgb }};
+      --color-foreground: rgb({{ fg.rgba }});
+      --color-foreground-rgb: {{ fg.rgb }};
+
+      {%- if fg_secondary != blank -%}
+        --color-foreground-secondary: rgb({{ fg_secondary.rgba }});
+      {%- else -%}
+        --color-foreground-secondary: rgb({{ fg.rgb }});
+      {%- endif -%}
+
+      {%- if accent != blank -%}
+        --color-accent: rgb({{ accent.rgba }});
+        --color-accent-rgb: {{ accent.rgb }};
+      {%- endif -%}
+
+      {%- if btn_bg != blank -%}
+        --color-button: rgb({{ btn_bg.rgba }});
+      {%- endif -%}
+      {%- if btn_text != blank -%}
+        --color-button-text: rgb({{ btn_text.rgba }});
+      {%- endif -%}
+
+      /* ===== Custom convenience tokens (from your group) ===== */
+      {%- if header_bg != blank -%}
+        --color-header-background: rgb({{ header_bg.rgba }});
+      {%- else -%}
+        --color-header-background: rgb({{ bg.rgba }}); /* fallback to background */
+      {%- endif -%}
+
+      {%- if brand2 != blank -%}
+        --color-brand-secondary: rgb({{ brand2.rgba }});
+      {%- endif -%}
+
+      {%- if surface != blank -%}
+        --color-surface: rgb({{ surface.rgba }});
+      {%- else -%}
+        /* gentle derived surface if not supplied */
+        --color-surface: color-mix(in srgb, var(--color-background) 96%, var(--color-foreground) 4%);
+      {%- endif -%}
+
+      {%- if border_col != blank -%}
+        --color-border: rgb({{ border_col.rgba }});
+        --color-border-rgb: {{ border_col.rgb }};
+      {%- else -%}
+        --color-border: color-mix(in srgb, var(--color-foreground) 12%, transparent);
+      {%- endif -%}
+
+      /* ===== Opacity helpers based on background brightness ===== */
+      {%- assign bg_brightness = bg | color_brightness -%}
+      {%- if bg_brightness < 64 -%}
+        --op-05-15: 0.15;
+        --op-10-25: 0.25;
+        --op-35-55: 0.55;
+      {%- else -%}
+        --op-05-15: 0.05;
+        --op-10-25: 0.10;
+        --op-35-55: 0.35;
+      {%- endif -%}
+    }
+  {%- endfor -%}
+
+  /* Sitewide wrapper convenience */
+  body.color-scheme {
+    color: var(--color-foreground);
+    background-color: var(--color-background);
+  }
+{% endstyle %}

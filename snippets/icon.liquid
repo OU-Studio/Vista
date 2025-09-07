@@ -1,0 +1,67 @@
+{% comment %}
+Usage:
+  {% render 'icon', name: 'search' %}
+Resolves to one of:
+  snippets/icon-search-outline.liquid
+  snippets/icon-search-rounded.liquid
+  snippets/icon-search-duotone.liquid
+depending on theme setting "icon_pack"
+{% endcomment %}
+
+{% assign pack = settings.icon_pack | default: 'outline' %}
+
+{% case name %}
+  {% when 'search' %}
+    {% if pack == 'rounded' %}
+      {% render 'icon-search-rounded', stroke: settings.icon_stroke %}
+    {% elsif pack == 'duotone' %}
+      {% render 'icon-search-duotone', stroke: settings.icon_stroke %}
+    {% else %}
+      {% render 'icon-search-outline', stroke: settings.icon_stroke %}
+    {% endif %}
+
+  {% when 'user' %}
+    {% if pack == 'rounded' %}
+      {% render 'icon-user-rounded', stroke: settings.icon_stroke %}
+    {% elsif pack == 'duotone' %}
+      {% render 'icon-user-duotone', stroke: settings.icon_stroke %}
+    {% else %}
+      {% render 'icon-user-outline', stroke: settings.icon_stroke %}
+    {% endif %}
+
+  {% when 'cart' %}
+    {% if pack == 'rounded' %}
+      {% render 'icon-cart-rounded', stroke: settings.icon_stroke %}
+    {% elsif pack == 'duotone' %}
+      {% render 'icon-cart-duotone', stroke: settings.icon_stroke %}
+    {% else %}
+      {% render 'icon-cart-outline', stroke: settings.icon_stroke %}
+    {% endif %}
+
+  {% when 'menu' %}
+    {% if pack == 'rounded' %}
+      {% render 'icon-menu-rounded', stroke: settings.icon_stroke %}
+    {% elsif pack == 'duotone' %}
+      {% render 'icon-menu-duotone', stroke: settings.icon_stroke %}
+    {% else %}
+      {% render 'icon-menu-outline', stroke: settings.icon_stroke %}
+    {% endif %}
+
+  {% when 'x' %}
+    {% if pack == 'rounded' %}
+      {% render 'icon-x-rounded', stroke: settings.icon_stroke %}
+    {% elsif pack == 'duotone' %}
+      {% render 'icon-x-duotone', stroke: settings.icon_stroke %}
+    {% else %}
+      {% render 'icon-x-outline', stroke: settings.icon_stroke %}
+    {% endif %}
+
+  {% when 'chevron-down' %}
+    {% if pack == 'rounded' %}
+      {% render 'icon-chevron-down-rounded', stroke: settings.icon_stroke %}
+    {% elsif pack == 'duotone' %}
+      {% render 'icon-chevron-down-duotone', stroke: settings.icon_stroke %}
+    {% else %}
+      {% render 'icon-chevron-down-outline', stroke: settings.icon_stroke %}
+    {% endif %}
+{% endcase %}

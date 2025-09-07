@@ -5,22 +5,212 @@ body {
   font-size: var(--t-body-size);
   line-height: var(--t-body-lh);
   letter-spacing: var(--t-body-tracking);
-  color: var(--c-text);
-  background: var(--c-bg);
+  color: var(--color-foreground);
+  background: var(--color-background);
 }
 
-/* Headings use a modular scale from body size and --t-heading-ratio */
+/* Scheme-derived helpers (define once) */
+.color-scheme {
+  --surface-100: color-mix(in srgb, var(--color-background) 96%, var(--color-foreground) 4%);
+  --surface-200: color-mix(in srgb, var(--color-background) 92%, var(--color-foreground) 8%);
+  --divider: color-mix(in srgb, var(--color-foreground) 12%, transparent);
+  --link-hover: color-mix(in srgb, var(--color-accent) 85%, var(--color-foreground) 15%);
+}
+
+/* Headings (sizes are emitted inline from theme.liquid) */
 h1,h2,h3,h4,h5,h6 {
   font-family: var(--t-font-heading);
   line-height: var(--t-heading-lh);
   letter-spacing: var(--t-heading-tracking);
   margin: 0 0 0.5em 0;
 }
-h6 { font-size: calc(var(--t-body-size) * pow(var(--t-heading-ratio), 1)); }
-h5 { font-size: calc(var(--t-body-size) * pow(var(--t-heading-ratio), 2)); }
-h4 { font-size: calc(var(--t-body-size) * pow(var(--t-heading-ratio), 3)); }
-h3 { font-size: calc(var(--t-body-size) * pow(var(--t-heading-ratio), 4)); }
-h2 { font-size: calc(var(--t-body-size) * pow(var(--t-heading-ratio), 5)); }
-h1 { font-size: calc(var(--t-body-size) * pow(var(--t-heading-ratio), 6)); }
 
-/* If your CSS environment doesn’t support pow(), define explicit steps instead */
+/* Icons */
+.icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+
+/* ===========================
+   Header (color-scheme based)
+   =========================== */
+.hdr { position: relative; z-index: 50; color: var(--color-foreground); }
+.hdr__bar {
+  position: relative;
+  background: var(--color-header-background, var(--color-background));
+  padding: calc(var(--gutter) / 2) var(--gutter);
+}
+.hdr__grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--gutter);
+  min-height: var(--header-height, 64px);
+}
+.hdr__logo { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit; }
+.hdr__logo-text { font-family: var(--t-font-heading); font-size: calc(var(--t-body-size) * 1.25); }
+
+/* Desktop nav */
+.hdr__nav { display: block; }
+.hdr__item { position: relative; }
+.hdr__link { display: inline-block; padding: .25rem 0; text-decoration: none; color: inherit; }
+
+/* Dropdown (simple) */
+.dropdown {
+  position: absolute; inset-inline-start: 0; top: 100%;
+  min-width: 220px;
+  background: var(--surface-200);
+  border-radius: var(--radius);
+  padding: .5rem;
+  box-shadow: var(--elevation-2);
+  display: none;
+}
+.hdr__item:hover > .dropdown { display: block; }
+
+/* Mega menu */
+.mega {
+  position: absolute; left: 0; right: 0; top: 100%;
+  background: var(--surface-200);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--elevation-2);
+  display: none;
+}
+.hdr__item:hover > .mega { display: block; }
+.mega__inner { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1rem; }
+.mega__heading { font-weight: 600; display: inline-block; margin-bottom: .25rem; }
+.mega__list { list-style: none; margin: 0; padding: 0; }
+
+/* Utilities (search/account/cart) */
+.hdr__utils { display: flex; align-items: center; gap: .75rem; }
+.hdr__util { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit; }
+.hdr__cart { position: relative; }
+.hdr__cart-count {
+  position: absolute; top: -6px; right: -8px;
+  min-width: 18px; height: 18px; border-radius: 9px;
+  background: var(--color-accent); color: var(--color-button-text, #fff);
+  font-size: 11px; line-height: 18px; text-align: center; padding: 0 4px;
+}
+
+/* Announcement bar */
+.hdr__announce { background: var(--color-accent); color: var(--color-button-text, #fff); font-size: 0.875rem; }
+.hdr__announce .container { padding-block: .4rem; }
+.hdr__announce-text { margin: 0; text-align: center; }
+
+/* Sticky (fixed) */
+.hdr--sticky{
+  position: fixed; top: 0; left: 0; right: 0;
+  min-height: calc(var(--header-height, 64px) + var(--announce-height, 0px));
+  background: var(--color-header-background, var(--color-background));
+  z-index: 60;
+  box-shadow: var(--elevation-0);
+  transition: box-shadow .2s ease, background .2s ease;
+}
+.hdr--sticky.is-scrolled { box-shadow: var(--elevation-1); }
+
+body.has-sticky-header {
+  padding-top: calc(var(--header-height, 64px) + var(--announce-height, 0px));
+}
+
+.hdr__link:hover { color: var(--link-hover); }
+
+/* Normal / static variants (identical background) */
+.hdr--normal .hdr__bar,
+.hdr--static .hdr__bar { background: var(--color-header-background, var(--color-background)); }
+
+/* Transparent (over hero) */
+.hdr--transparent,
+.hdr--transparent .hdr__bar { background: transparent; color: var(--color-button-text, #fff); }
+.hdr--transparent .dropdown,
+.hdr--transparent .mega { color: inherit; }
+
+/* Mobile breakpoint */
+.hdr__menu-btn { display: none; background: none; border: 0; align-items: center; }
+@media (max-width: 999px) {
+  .hdr__menu-btn { display: inline-flex; }
+  .hdr__nav { display: none; }
+  .hdr__grid { grid-template-columns: auto 1fr auto; }
+}
+
+/* Mobile drawer */
+.mnav[hidden] { display: none; }
+.mnav {
+  position: fixed; inset: 0;
+  background: var(--color-background);
+  z-index: 60; display: grid; grid-template-rows: auto 1fr;
+}
+.mnav__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem var(--gutter);
+  border-bottom: 1px solid var(--divider);
+}
+.mnav__close { background: none; border: 0; }
+.mnav__body { overflow: auto; }
+.mnav__menu, .mnav__submenu { list-style: none; margin: 0; padding: 0; }
+.mnav__menu > li { border-bottom: 1px solid var(--divider); }
+.mnav__link { display: block; padding: 1rem var(--gutter); text-decoration: none; color: inherit; }
+.mnav__toggle { background: none; border: 0; padding: 1rem; float: right; }
+.mnav__submenu { padding-left: 1rem; }
+.mnav__submenu[hidden] { display: none; }
+
+/* Accessibility helpers */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* ===========================
+   Header layout variants (desktop)
+   =========================== */
+@media (min-width: 1000px) {
+  .hdr__logo  { grid-area: logo; }
+  .hdr__nav   { grid-area: nav; }
+  .hdr__utils { grid-area: utils; justify-self: end; }
+  .hdr__menu-btn { display: none; } /* desktop hides burger */
+
+  /* 1) Logo center, nav left, utils right */
+  .hdr--logo_center_nav_left .hdr__grid {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+    grid-template-areas: "nav logo utils";
+    align-items: center;
+    gap: var(--gutter);
+    min-height: var(--header-height, 64px);
+  }
+  .hdr--logo_center_nav_left .hdr__logo  { grid-area: logo;  justify-self: center; }
+  .hdr--logo_center_nav_left .hdr__nav   { grid-area: nav;   justify-self: start;  min-width: 0; }
+  .hdr--logo_center_nav_left .hdr__utils { grid-area: utils; justify-self: end;    min-width: 0; }
+  .hdr--logo_center_nav_left .hdr__menu {
+    display: flex; flex-wrap: wrap;
+    gap: clamp(.5rem, 1vw, 1.25rem);
+    justify-content: flex-start; min-width: 0;
+  }
+
+  /* 2) Logo left, nav centered, utils right */
+  .hdr--logo_left_nav_center .hdr__grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "logo nav utils";
+    align-items: center;
+    gap: var(--gutter);
+    min-height: var(--header-height, 64px);
+  }
+  .hdr--logo_left_nav_center .hdr__menu { justify-content: center; }
+
+  /* 3) Logo left, nav left, utils right */
+  .hdr--logo_left_nav_left .hdr__grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "logo nav utils";
+    align-items: center;
+    gap: var(--gutter);
+    min-height: var(--header-height, 64px);
+  }
+  .hdr--logo_left_nav_left .hdr__menu { justify-content: flex-start; }
+}
+
+/* Single authoritative .hdr__menu */
+.hdr__menu {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

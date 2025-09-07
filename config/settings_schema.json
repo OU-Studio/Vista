@@ -11,15 +11,6 @@
     "name": "Design system",
     "settings": [      
 
-      { "type": "header", "content": "Color" },
-      { "type": "color", "id": "color_bg", "label": "Background", "default": "#ffffff" },
-      { "type": "color", "id": "color_alt_bg", "label": "Alt Background", "default": "#dfdfdf" },
-      { "type": "color", "id": "color_text", "label": "Text", "default": "#121212" },
-      { "type": "color", "id": "color_primary", "label": "Primary", "default": "#E43939" },
-      { "type": "color", "id": "color_secondary", "label": "Secondary", "default": "#E48D39" },
-      { "type": "color", "id": "color_tertiary", "label": "Tertiary", "default": "#39E4D5" },
-      { "type": "color", "id": "color_misc", "label": "Miscellaneous", "default": "#ef4444" },
-
       { "type": "header", "content": "Layout & spacing" },
       { "type": "range", "id": "site_max", "label": "Site max width", "min": 900, "max": 1600, "step": 20, "unit": "px", "default": 1200 },
       { "type": "range", "id": "gutter", "label": "Gutter (grid gap)", "min": 4, "max": 40, "step": 2, "unit": "px", "default": 20 },
@@ -38,6 +29,54 @@
       { "type": "range", "id": "motion_speed", "label": "Animation speed", "min": 75, "max": 150, "step": 5, "unit": "%", "default": 100 }
     ]
   },
+  {
+  "name": "Colours",
+  "settings": [
+    {
+      "type": "color_scheme_group",
+      "id": "color_schemes",
+      "definition": [
+        { "type": "color", "id": "background_color",        "label": "Background",              "default": "#ffffff" },
+        { "type": "color", "id": "header_background_color", "label": "Header background",       "default": "#ffffff" },
+
+        { "type": "color", "id": "text_color",              "label": "Text",                    "default": "#111111" },
+        { "type": "color", "id": "text_muted_color",        "label": "Muted text",              "default": "#6b7280" },
+
+        { "type": "color", "id": "brand_primary_color",     "label": "Primary brand color",     "default": "#1f6feb" },
+        { "type": "color", "id": "brand_secondary_color",   "label": "Secondary brand color",   "default": "#ef4444" },
+
+        { "type": "color", "id": "button_primary_bg",       "label": "Primary button",          "default": "#1f6feb" },
+        { "type": "color", "id": "button_primary_text",     "label": "Primary button text",     "default": "#ffffff" },
+
+        { "type": "color", "id": "button_secondary_bg",     "label": "Secondary button",        "default": "#f3f4f6" },
+        { "type": "color", "id": "button_secondary_text",   "label": "Secondary button text",   "default": "#111111" },
+
+        { "type": "color", "id": "surface_bg",              "label": "Surface / Card background","default": "#f9fafb" },
+        { "type": "color", "id": "border_color",            "label": "Borders / Dividers",      "default": "#e5e7eb" }
+      ],
+      "role": {
+        "background": "background_color",
+        "text": "text_color",
+        "links": "brand_primary_color",
+        "icons": "text_color",
+
+        "primary_button": "button_primary_bg",
+        "on_primary_button": "button_primary_text",
+        "primary_button_border": "button_primary_bg",
+
+        "secondary_button": "button_secondary_bg",
+        "on_secondary_button": "button_secondary_text",
+        "secondary_button_border": "border_color"
+      }
+    },
+    {
+      "type": "color_scheme",
+      "id": "default_color_scheme",
+      "label": "Default color scheme (sitewide)",
+      "default": "scheme-1"
+    }
+  ]
+},
   {
     "name": "Typography",
     "settings": [
@@ -62,15 +101,8 @@
     ]
   },
   {
-    "name": "Header & navigation",
+    "name": "Cart",
     "settings": [
-      { "type": "checkbox", "id": "header_sticky", "label": "Sticky header", "default": true },
-      { "type": "range", "id": "header_height", "label": "Header height", "min": 48, "max": 92, "step": 2, "unit": "px", "default": 64 },
-      { "type": "select", "id": "menu_style", "label": "Menu style", "options": [
-        { "value": "classic", "label": "Classic" },
-        { "value": "mega", "label": "Mega menu (basic)" },
-        { "value": "overlay", "label": "Overlay" }
-      ], "default": "classic" },
       { "type": "select", "id": "cart_type", "label": "Cart type", "options": [
         { "value": "drawer", "label": "Drawer" },
         { "value": "page", "label": "Page" }

@@ -1,168 +1,142 @@
 <!doctype html>
 <html lang="{{ request.locale.iso_code }}">
   <head>
-    {% # Inlined CSS Variables %}
-    {% render 'css-variables' %}
+    {%- comment -%}
+      Resolve the default scheme's background for the browser UI color.
+    {%- endcomment -%}
+    {%- assign __theme_color = '#ffffff' -%}
+    {%- assign __default_scheme = settings.default_color_scheme | default: 'scheme-1' -%}
+    {%- for __s in settings.color_schemes -%}
+      {%- if __s.id == __default_scheme and __s.settings.background -%}
+        {%- assign __theme_color = __s.settings.background -%}
+      {%- elsif __s.id == __default_scheme and __s.settings.background_color -%}
+        {%- assign __theme_color = __s.settings.background_color -%}
+      {%- endif -%}
+    {%- endfor -%}
+    <meta name="theme-color" content="{{ __theme_color }}">
 
-    {% # Load and preload the critical CSS %}
-    {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
-
-    {% # Social, title, etc. %}
+    {%- comment -%} Social, SEO, title, etc. {%- endcomment -%}
     {% render 'meta-tags' %}
 
     {{ content_for_header }}
 
-   {%- comment -%} Load selected fonts (@font-face) {%- endcomment -%}
-<style>
-  {{ settings.font_heading | font_face: font_display: 'swap' }}
-  {{ settings.font_body    | font_face: font_display: 'swap' }}
-  {{ settings.font_misc    | font_face: font_display: 'swap' }}
-</style>
+    {%- comment -%} Emit scheme variables BEFORE CSS {%- endcomment -%}
+    {% render 'color-schemes' %}
 
-{%- comment -%} Map theme settings → CSS custom properties {%- endcomment -%}
-<style>
-  :root{
-    /* ---------------------------------------------
-       Typography (families)
-       --------------------------------------------- */
-    --t-font-heading: {{ settings.font_heading.family | json }}, {{ settings.font_heading.fallback_families | json }};
-    --t-font-body: {{ settings.font_body.family | json }}, {{ settings.font_body.fallback_families | json }};
-    --t-font-misc: {{ settings.font_misc.family | json }}, {{ settings.font_misc.fallback_families | json }};
+    {%- comment -%} Load selected fonts (@font-face) {%- endcomment -%}
+    <style>
+      {{ settings.font_heading | font_face: font_display: 'swap' }}
+      {{ settings.font_body    | font_face: font_display: 'swap' }}
+      {{ settings.font_misc    | font_face: 'swap' }}
+    </style>
 
-    /* Base body text tokens */
-    --t-body-size: {{ settings.body_font_size | default: 16 }}px;
-    --t-body-lh: {{ settings.body_line_height | default: 1.2 }};
-    --t-body-tracking: {{ settings.body_letter_spacing | default: 0 }}em;
-
-    /* Heading scale ratio from selector */
+    {%- comment -%}
+      Map non-color theme settings → CSS custom properties.
+      (Color tokens come from color-schemes.liquid)
+    {%- endcomment -%}
     {%- assign hs = settings['header-scaling'] -%}
     {%- case hs -%}
-      {%- when 'minor_second'   -%}{%- assign h_ratio = 1.067 -%}
-      {%- when 'major_second'   -%}{%- assign h_ratio = 1.125 -%}
-      {%- when 'minor_third'    -%}{%- assign h_ratio = 1.200 -%}
-      {%- when 'major_third'    -%}{%- assign h_ratio = 1.250 -%}
-      {%- when 'perfect_forth'  -%}{%- assign h_ratio = 1.333 -%}
-      {%- when 'augmented_forth'-%}{%- assign h_ratio = 1.414 -%}
-      {%- when 'perfect_fifth'  -%}{%- assign h_ratio = 1.500 -%}
-      {%- when 'golden_ratio'   -%}{%- assign h_ratio = 1.618 -%}
-      {%- else -%}{%- assign h_ratio = 1.333 -%} {# default #}
+      {%- when 'minor_second'    -%}{%- assign h_ratio = 1.067 -%}
+      {%- when 'major_second'    -%}{%- assign h_ratio = 1.125 -%}
+      {%- when 'minor_third'     -%}{%- assign h_ratio = 1.200 -%}
+      {%- when 'major_third'     -%}{%- assign h_ratio = 1.250 -%}
+      {%- when 'perfect_forth'   -%}{%- assign h_ratio = 1.333 -%}
+      {%- when 'augmented_forth' -%}{%- assign h_ratio = 1.414 -%}
+      {%- when 'perfect_fifth'   -%}{%- assign h_ratio = 1.500 -%}
+      {%- when 'golden_ratio'    -%}{%- assign h_ratio = 1.618 -%}
+      {%- else -%}{%- assign h_ratio = 1.333 -%}
     {%- endcase -%}
-    --t-heading-ratio: {{ h_ratio }};
 
-    /* Heading rhythm */
-    --t-heading-lh: {{ settings.header_line_height | default: 1.2 }};
-    --t-heading-tracking: {{ settings.header_letter_spacing | default: 0 }}em;
+    <style>
+      :root{
+        /* Typography (families) */
+        --t-font-heading: {{ settings.font_heading.family | json }}, {{ settings.font_heading.fallback_families | json }};
+        --t-font-body:    {{ settings.font_body.family    | json }}, {{ settings.font_body.fallback_families    | json }};
+        --t-font-misc:    {{ settings.font_misc.family    | json }}, {{ settings.font_misc.fallback_families    | json }};
 
-    /* ---------------------------------------------
-       Colors
-       --------------------------------------------- */
-    --c-bg: {{ settings.color_bg }};
-    --c-alt-bg: {{ settings.color_alt_bg }};
-    --c-text: {{ settings.color_text }};
-    --c-primary: {{ settings.color_primary }};
-    --c-secondary: {{ settings.color_secondary }};
-    --c-tertiary: {{ settings.color_tertiary }};
-    --c-misc: {{ settings.color_misc }};
+        /* Base type scale */
+        --t-body-size: {{ settings.body_font_size | default: 16 }}px;
+        --t-body-lh:   {{ settings.body_line_height | default: 1.2 }};
+        --t-body-tracking: {{ settings.body_letter_spacing | default: 0 }}em;
+        --t-heading-ratio: {{ h_ratio }};
+        --t-heading-lh: {{ settings.header_line_height | default: 1.2 }};
+        --t-heading-tracking: {{ settings.header_letter_spacing | default: 0 }}em;
 
-    /* ---------------------------------------------
-       Layout & spacing
-       --------------------------------------------- */
-    --container-max: {{ settings.site_max | default: 1200 }}px;
-    --gutter: {{ settings.gutter | default: 20 }}px;
+        /* Layout & spacing */
+        --container-max: {{ settings.site_max | default: 1200 }}px;
+        --gutter: {{ settings.gutter | default: 20 }}px;
+        --announce-height: 0px; /* updated by announcement bar JS if present */
 
-    /* ---------------------------------------------
-       Shape & elevation
-       --------------------------------------------- */
-    --radius: {{ settings.radius | default: 8 }}px;
-    --shadow-depth: {{ settings.shadow_depth | default: 1 }};
-    --elevation-0: 0 0 0 rgba(0,0,0,0);
-    --elevation-1: 0 1px 2px rgba(0,0,0,.08);
-    --elevation-2: 0 4px 10px rgba(0,0,0,.10);
-    --elevation-3: 0 10px 20px rgba(0,0,0,.12);
+        /* Shape & elevation */
+        --radius: {{ settings.radius | default: 8 }}px;
+        --shadow-depth: {{ settings.shadow_depth | default: 1 }};
+        --elevation-0: 0 0 0 rgba(0,0,0,0);
+        --elevation-1: 0 1px 2px rgba(0,0,0,.08);
+        --elevation-2: 0 4px 10px rgba(0,0,0,.10);
+        --elevation-3: 0 10px 20px rgba(0,0,0,.12);
 
-    /* ---------------------------------------------
-       Icons & motion
-       --------------------------------------------- */
-    --icon-pack: "{{ settings.icon_pack | default: 'outline' }}";
-    --icon-stroke: {{ settings.icon_stroke | default: 2 }};
-    --motion: {{ settings.motion_speed | default: 100 | times: 0.01 }};
+        /* Icons & motion */
+        --icon-pack: "{{ settings.icon_pack | default: 'outline' }}";
+        --icon-stroke: {{ settings.icon_stroke | default: 2 }};
+        --motion: {{ settings.motion_speed | default: 100 | times: 0.01 }};
 
-    /* ---------------------------------------------
-       Header & navigation
-       --------------------------------------------- */
-    --header-sticky: {% if settings.header_sticky %}1{% else %}0{% endif %};
-    --header-height: {{ settings.header_height | default: 64 }}px;
-    --menu-style: "{{ settings.menu_style | default: 'classic' }}";
-    --cart-type: "{{ settings.cart_type | default: 'drawer' }}";
+        /* Buttons (shape) */
+        --btn-shape: "{{ settings.btn_shape | default: 'soft' }}";
+        --btn-radius: {% if settings.btn_shape == 'pill' %}999px{% elsif settings.btn_shape == 'square' %}0px{% else %}{{ settings.radius | default: 8 }}px{% endif %};
+        --btn-weight: "{{ settings.btn_weight | default: 'solid' }}";
+        --btn-uppercase: {% if settings.btn_uppercase %}1{% else %}0{% endif %};
 
-    /* ---------------------------------------------
-       Buttons
-       --------------------------------------------- */
-    --btn-shape: "{{ settings.btn_shape | default: 'soft' }}";
-    --btn-radius: {% if settings.btn_shape == 'pill' %}999px{% elsif settings.btn_shape == 'square' %}0px{% else %}{{ settings.radius | default: 8 }}px{% endif %};
-    --btn-weight: "{{ settings.btn_weight | default: 'solid' }}";
-    --btn-uppercase: {% if settings.btn_uppercase %}1{% else %}0{% endif %};
+        /* Cards */
+        --card-radius: {{ settings.card_radius | default: 8 }}px;
+        --card-shadow-depth: {{ settings.card_shadow | default: 1 }};
+        --card-pad-x: {{ settings.card_padding_x | default: 16 }}px;
+        --card-pad-y: {{ settings.card_padding_y | default: 16 }}px;
 
-    /* ---------------------------------------------
-       Cards
-       --------------------------------------------- */
-    --card-radius: {{ settings.card_radius | default: 8 }}px;
-    --card-shadow-depth: {{ settings.card_shadow | default: 1 }};
-    --card-pad-x: {{ settings.card_padding_x | default: 16 }}px;
-    --card-pad-y: {{ settings.card_padding_y | default: 16 }}px;
+        /* Images & media */
+        --img-ratio-default: "{{ settings.image_ratio_default | default: 'auto' }}";
+        --img-soft-corners: {% if settings.image_soft_corners %}1{% else %}0{% endif %};
+        --img-lazy: {% if settings.image_lazy %}1{% else %}0{% endif %};
 
-    /* ---------------------------------------------
-       Images & media
-       --------------------------------------------- */
-    --img-ratio-default: "{{ settings.image_ratio_default | default: 'auto' }}";
-    --img-soft-corners: {% if settings.image_soft_corners %}1{% else %}0{% endif %};
-    --img-lazy: {% if settings.image_lazy %}1{% else %}0{% endif %};
+        /* Product defaults */
+        --prod-quick-add: {% if settings.show_quick_add %}1{% else %}0{% endif %};
+        --prod-second-image: {% if settings.show_second_image_on_hover %}1{% else %}0{% endif %};
+        --prod-compare-price: {% if settings.show_price_compare %}1{% else %}0{% endif %};
+        --prod-badges: {% if settings.show_badges %}1{% else %}0{% endif %};
+        --grid-cols-desktop: {{ settings.grid_columns_desktop | default: 4 }};
 
-    /* ---------------------------------------------
-       Product defaults
-       --------------------------------------------- */
-    --prod-quick-add: {% if settings.show_quick_add %}1{% else %}0{% endif %};
-    --prod-second-image: {% if settings.show_second_image_on_hover %}1{% else %}0{% endif %};
-    --prod-compare-price: {% if settings.show_price_compare %}1{% else %}0{% endif %};
-    --prod-badges: {% if settings.show_badges %}1{% else %}0{% endif %};
-    --grid-cols-desktop: {{ settings.grid_columns_desktop | default: 4 }};
+        /* Search & quick view */
+        --predictive-search: {% if settings.enable_predictive_search %}1{% else %}0{% endif %};
+        --quick-view: {% if settings.enable_quick_view %}1{% else %}0{% endif %};
 
-    /* ---------------------------------------------
-       Search & quick view
-       --------------------------------------------- */
-    --predictive-search: {% if settings.enable_predictive_search %}1{% else %}0{% endif %};
-    --quick-view: {% if settings.enable_quick_view %}1{% else %}0{% endif %};
+        /* Accessibility & UX */
+        --focus-outline-always: {% if settings.focus_outline_always %}1{% else %}0{% endif %};
+        --respect-reduced-motion: {% if settings.respect_reduced_motion %}1{% else %}0{% endif %};
+        --skip-links-enabled: {% if settings.enable_skip_links %}1{% else %}0{% endif %};
+      }
+    </style>
 
-    /* ---------------------------------------------
-       Accessibility & UX
-       --------------------------------------------- */
-    --focus-outline-always: {% if settings.focus_outline_always %}1{% else %}0{% endif %};
-    --respect-reduced-motion: {% if settings.respect_reduced_motion %}1{% else %}0{% endif %};
-    --skip-links-enabled: {% if settings.enable_skip_links %}1{% else %}0{% endif %};
-  }
-</style>
+    {%- assign base = settings.body_font_size | default: 16 -%}
+    {%- assign r = h_ratio -%}
+    <style>
+      h6 { font-size: {{ base | times: r | round: 2 }}px; }
+      h5 { font-size: {{ base | times: r | times: r | round: 2 }}px; }
+      h4 { font-size: {{ base | times: r | times: r | times: r | round: 2 }}px; }
+      h3 { font-size: {{ base | times: r | times: r | times: r | times: r | round: 2 }}px; }
+      h2 { font-size: {{ base | times: r | times: r | times: r | times: r | times: r | round: 2 }}px; }
+      h1 { font-size: {{ base | times: r | times: r | times: r | times: r | times: r | times: r | round: 2 }}px; }
+    </style>
 
-{%- assign base = settings.body_font_size | default: 16 -%}
-{%- assign r = h_ratio -%}
-<style>
-  h6 { font-size: {{ base | times: r | round: 2 }}px; }
-  h5 { font-size: {{ base | times: r | times: r | round: 2 }}px; }
-  h4 { font-size: {{ base | times: r | times: r | times: r | round: 2 }}px; }
-  h3 { font-size: {{ base | times: r | times: r | times: r | times: r | round: 2 }}px; }
-  h2 { font-size: {{ base | times: r | times: r | times: r | times: r | times: r | round: 2 }}px; }
-  h1 { font-size: {{ base | times: r | times: r | times: r | times: r | times: r | times: r | round: 2 }}px; }
-</style>
-
-
-
-{{ 'base.css' | asset_url | stylesheet_tag: preload: true }}
-
+    {%- comment -%} Critical first, then base; both can be preloaded {%- endcomment -%}
+    {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
+    {{ 'base.css'     | asset_url | stylesheet_tag: preload: true }}
   </head>
 
-  <body>
+  <body class="color-scheme color-scheme-{{ settings.default_color_scheme | default: 'scheme-1' }}">
     {% sections 'header-group' %}
 
-    {{ content_for_layout }}
+    <main class="color-scheme color-scheme-{{ settings.default_color_scheme }}">
+      {{ content_for_layout }}
+    </main>
 
     {% sections 'footer-group' %}
   </body>
