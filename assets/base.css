@@ -28,6 +28,87 @@ h1,h2,h3,h4,h5,h6 {
 /* Icons */
 .icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
 
+/* buttons */
+.button{
+  -webkit-appearance:none; appearance:none;
+  display:inline-flex; align-items:center; justify-content:center; gap:var(--btn-gap);
+  font:var(--btn-font);
+  height:var(--btn-h); padding:0 var(--btn-pad-x);
+  border-radius:var(--btn-radius); border:1px solid transparent;
+  text-decoration:none; cursor:pointer; user-select:none;
+  transition:transform .03s ease, box-shadow .2s, background-color .2s, color .2s, border-color .2s;
+  background: var(--surface-bg); color: var(--text-color);
+}
+.button:focus-visible{ outline:none; box-shadow:var(--focus-ring); }
+.button:active{ transform: translateY(1px); }
+.button[disabled], .button.is-disabled{ opacity:.6; cursor:not-allowed; pointer-events:none; }
+
+/* Primary (default: solid) */
+.button--primary{
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border-color: var(--btn-primary-border);
+  box-shadow: var(--btn-shadow);
+}
+.button--primary:hover{ filter: brightness(1.04); }
+.button--primary:active{ filter: brightness(.98); }
+
+/* Secondary (default: filled subtle / outlined border) */
+.button--secondary{
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-color: var(--btn-secondary-border);
+}
+.button--secondary:hover{ filter: brightness(1.02); }
+
+/* Weight overrides via body data attribute */
+body[data-btn-weight="outline"] .button--primary{
+  background: transparent;
+  color: var(--btn-primary-bg);
+  border-color: var(--btn-primary-bg);
+  box-shadow: none;
+}
+body[data-btn-weight="outline"] .button--primary:hover{
+  background: color-mix(in srgb, var(--btn-primary-bg), #fff 92%);
+}
+@supports not (color-mix(in srgb, #000, #fff)){
+  body[data-btn-weight="outline"] .button--primary:hover{ background: rgba(0,0,0,.04); }
+}
+
+body[data-btn-weight="ghost"] .button--primary{
+  background: transparent;
+  color: var(--btn-primary-bg);
+  border-color: transparent;
+  box-shadow: none;
+}
+body[data-btn-weight="ghost"] .button--primary:hover{
+  background: rgba(0,0,0,.05);
+}
+
+/* Shape override via body data attribute (pill/square already set in tokens; this is just safety) */
+body[data-btn-shape="pill"] .button{ border-radius: 999px; }
+body[data-btn-shape="square"] .button{ border-radius: 0; }
+
+/* Uppercase toggle */
+body[data-btn-uppercase="true"] .button{ text-transform: uppercase; letter-spacing: .04em; }
+
+/* Sizes */
+.button--sm{ height: 36px; padding-inline: 12px; font-size:.875rem; }
+.button--lg{ height: 52px; padding-inline: 20px; font-size:1rem; }
+
+/* Full width helper */
+.w-full{ width: 100%; }
+
+/* Loading affordance (optional) */
+.button.is-loading, .button[aria-busy="true"]{ position:relative; pointer-events:none; }
+.button.is-loading::after, .button[aria-busy="true"]::after{
+  content:""; position:absolute; inset-inline-end:.75rem; width:1em; height:1em;
+  border-radius:50%; border:2px solid currentColor; border-top-color:transparent;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin{ to { transform: rotate(360deg); } }
+
+
 /* ===========================
    Header (color-scheme based)
    =========================== */
@@ -222,30 +303,33 @@ body.has-sticky-header {
 /* Hidden via [hidden] attribute already; these help with layout when shown */
 .cart-drawer {
   position: fixed;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 80;                /* above header (50/60), below modals if any */
   display: grid;
   grid-template-columns: 1fr auto; /* overlay + panel */
 }
 
-/* Never block the page when hidden */
-.cart-drawer[hidden] { display: none !important; }
-
 /* Don't capture clicks until opened */
 .cart-drawer { pointer-events: none; }
 .cart-drawer.is-open { pointer-events: auto; }
 
-/* Overlay shouldn't capture clicks until open */
-.cart-drawer__overlay { pointer-events: none; opacity: 0; transition: opacity calc(160ms * var(--motion, 1)) ease; }
-.cart-drawer.is-open .cart-drawer__overlay { pointer-events: auto; opacity: 1; }
-
-
 /* Overlay */
 .cart-drawer__overlay {
   background: var(--scrim, color-mix(in srgb, var(--color-foreground) 45%, transparent));
-  opacity: 0;
-  transition: opacity calc(160ms * var(--motion, 1)) ease;
+  opacity: 0;                 /* GSAP controls this */
+  pointer-events: none;       /* toggled via .is-open + JS */
+  will-change: opacity;
+  position: fixed;
+    inset: 0;
 }
+
+/* Allow overlay clicks only when open (GSAP still animates opacity) */
+.cart-drawer.is-open .cart-drawer__overlay { pointer-events: auto; }
+
+
 
 /* Panel */
 .cart-drawer__panel {
@@ -256,18 +340,25 @@ body.has-sticky-header {
   height: 100%;
   box-shadow: var(--elevation-3);
   border-inline-start: 1px solid var(--color-border, color-mix(in srgb, var(--color-foreground) 12%, transparent));
-  transform: translateX(100%);
-  transition: transform calc(220ms * var(--motion, 1)) cubic-bezier(.2,.7,.2,1);
+  /* Remove CSS transform—GSAP owns motion */
+  /* transform: translateX(100%); */
+  will-change: transform;
   display: grid;
   grid-template-rows: auto 1fr auto; /* header / body / footer */
+margin-left: auto;
 }
-
-/* Open state (toggle this class on the root .cart-drawer) */
-.cart-drawer.is-open .cart-drawer__overlay { opacity: 1; }
-.cart-drawer.is-open .cart-drawer__panel { transform: translateX(0); }
 
 /* Prevent background scroll when drawer is open */
 body.drawer-open { overflow: hidden; }
+
+.cart-drawer[hidden]{
+  pointer-events: none !important;
+}
+
+.cart-list{
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
 
 /* Header */
 .cart-drawer__header {
@@ -295,9 +386,10 @@ body.drawer-open { overflow: hidden; }
 
 /* Body (line items mount here via JS) */
 .cart-drawer__body {
-  overflow: auto;
+  overflow: hidden;
   padding: 1rem max(var(--gutter), 16px);
   display: grid; gap: .75rem;
+  grid-template-rows: 1fr auto auto;
 }
 
 /* Loading / empty states */
@@ -345,5 +437,28 @@ body.drawer-open { overflow: hidden; }
   .cart-drawer__overlay,
   .cart-drawer__panel { transition: none; }
 }
+
+.cart-item__controls {
+  display: flex; align-items: center; gap: .75rem; margin-top: .5rem;
+}
+.cart-item__qty {
+  display: inline-flex; align-items: center; border: 1px solid #ddd; border-radius: 8px;
+}
+.qty-btn {
+  appearance: none; border: 0; background: transparent; padding: .4rem .6rem; cursor: pointer;
+}
+.qty-input {
+  width: 3.2rem; text-align: center; border: 0; padding: .35rem 0; outline: none;
+}
+.cart-item__remove {
+  background: none; border: none; text-decoration: underline; cursor: pointer; padding: 0;
+}
+.drawer-open .is-busy { pointer-events: none; opacity: .7; }
+
+.cart-actions{
+  display: flex;
+  gap: var(--gutter);
+}
+
 
 

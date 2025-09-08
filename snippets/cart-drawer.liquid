@@ -7,7 +7,7 @@
      hidden>
   <div class="cart-drawer__overlay" data-cart-close></div>
 
-  <aside class="cart-drawer__panel" tabindex="-1">
+  <aside class="cart-drawer__panel" tabindex="-1" style="transform: translateX(460px);">
     <header class="cart-drawer__header">
       <h2 id="CartDrawerTitle">Your cart</h2>
       <button class="cart-drawer__close" type="button" data-cart-close aria-label="Close cart">×</button>
@@ -17,10 +17,5 @@
       <!-- Filled via JS with /cart.js contents -->
       <div class="cart-drawer__loading">Loading…</div>
     </div>
-
-    <footer class="cart-drawer__footer">
-      <a class="button button--primary w-full" href="{{ routes.cart_url }}">View cart</a>
-      <a class="button button--secondary w-full" href="{{ routes.checkout_url }}">Checkout</a>
-    </footer>
   </aside>
 </div>

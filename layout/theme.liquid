@@ -130,9 +130,14 @@
     {%- comment -%} Critical first, then base; both can be preloaded {%- endcomment -%}
     {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
     {{ 'base.css'     | asset_url | stylesheet_tag: preload: true }}
+    {% render 'theme-button-tokens' %}
+
   </head>
 
-  <body class="color-scheme color-scheme-{{ settings.default_color_scheme | default: 'scheme-1' }}" data-cart-type="{{ settings.cart_type }}">
+  <body class="no-js color-scheme color-scheme-{{ settings.default_color_scheme | default: 'scheme-1' }}" data-cart-type="{{ settings.cart_type }}" class="no-js"
+  data-btn-shape="{{ settings.btn_shape }}"
+  data-btn-weight="{{ settings.btn_weight }}"
+  data-btn-uppercase="{{ settings.btn_uppercase }}>
     {% sections 'header-group' %}
 
     <main class="color-scheme color-scheme-{{ settings.default_color_scheme }}">
@@ -144,6 +149,12 @@
     {% if settings.cart_type == 'drawer' %}
       {% render 'cart-drawer' %}
    {% endif %}
+
+{{ 'gsap.min.js' | asset_url | script_tag }}
+{{ 'ScrollTrigger.min.js' | asset_url | script_tag }}
+{{ 'anim.js' | asset_url | script_tag}}
+
+
 
    {%- comment -%} Load once on every page {%- endcomment -%}
 <script type="module" src="{{ 'main.js' | asset_url }}"></script>

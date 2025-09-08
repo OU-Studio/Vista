@@ -1,113 +1,118 @@
 {%- comment -%}
-Emits CSS variables for each defined color scheme.
+Emits CSS variables for each defined color scheme (color_scheme_group "color_schemes")
++ binds :root to settings.default_color_scheme.
 
-Supports:
-- Built-in `color_schemes` (background, foreground, foreground_secondary, accent, button, button_text)
-- `color_scheme_group` with your custom ids:
-  background_color, header_background_color, text_color, text_muted_color,
-  brand_primary_color, brand_secondary_color,
-  button_primary_bg, button_primary_text, button_secondary_bg, button_secondary_text,
-  surface_bg, border_color
+Schema fields supported:
+- background_color, header_background_color
+- text_color, text_muted_color
+- brand_primary_color, brand_secondary_color
+- button_primary_bg, button_primary_text
+- button_secondary_bg, button_secondary_text
+- surface_bg, border_color
 
-Usage (in theme.liquid <head> BEFORE stylesheets):
+Usage:
   {% render 'color-schemes' %}
-
-Use per element/section:
   <section class="color-scheme color-scheme-{{ section.settings.color_scheme }}">…</section>
 {%- endcomment -%}
 
 {% style %}
-  {%- assign default_id = settings.default_color_scheme | default: 'scheme-1' -%}
+{%- assign default_id = settings.default_color_scheme | default: 'scheme-1' -%}
 
-  {%- for scheme in settings.color_schemes -%}
-    {%- assign id = scheme.id -%}
+{%- for scheme in settings.color_schemes -%}
+  {%- assign id = scheme.id -%}
+  {%- assign s  = scheme.settings -%}
 
-    {%- comment %}
-    Resolve fields from either native or group model.
-    Each ends up as a color object (supports .rgba / .rgb).
-    {%- endcomment -%}
-    {%- assign bg           = scheme.settings.background           | default: scheme.settings.background_color -%}
-    {%- assign fg           = scheme.settings.foreground           | default: scheme.settings.text_color -%}
-    {%- assign fg_secondary = scheme.settings.foreground_secondary | default: scheme.settings.text_muted_color -%}
-    {%- assign accent       = scheme.settings.accent               | default: scheme.settings.brand_primary_color -%}
-    {%- assign btn_bg       = scheme.settings.button               | default: scheme.settings.button_primary_bg -%}
-    {%- assign btn_text     = scheme.settings.button_text          | default: scheme.settings.button_primary_text -%}
+  {%- assign bg           = s.background_color -%}
+  {%- assign header_bg    = s.header_background_color | default: s.background_color -%}
+  {%- assign fg           = s.text_color -%}
+  {%- assign fg_muted     = s.text_muted_color | default: s.text_color -%}
+  {%- assign brand1       = s.brand_primary_color -%}
+  {%- assign brand2       = s.brand_secondary_color -%}
 
-    {%- assign header_bg    = scheme.settings.header_background_color -%}
-    {%- assign brand2       = scheme.settings.brand_secondary_color -%}
-    {%- assign surface      = scheme.settings.surface_bg -%}
-    {%- assign border_col   = scheme.settings.border_color -%}
+  {%- assign btn1_bg      = s.button_primary_bg -%}
+  {%- assign btn1_text    = s.button_primary_text -%}
+  {%- assign btn2_bg      = s.button_secondary_bg -%}
+  {%- assign btn2_text    = s.button_secondary_text -%}
+  {%- assign surface      = s.surface_bg -%}
+  {%- assign border_col   = s.border_color -%}
 
-    {%- if id == default_id -%}
-      :root,
+  {%- comment -%}
+  Fallbacks/derived:
+  - surface: if blank, derive a soft tint from bg/fg
+  - border: if blank, derive from fg @ 12% alpha
+  {%- endcomment -%}
+
+  {%- if id == default_id -%}
+    :root,
+  {%- endif -%}
+  .color-scheme.color-scheme-{{ id }} {
+    /* ===== Core (Shopify-ish) ===== */
+    --color-background: rgb({{ bg.rgba }});
+    --color-background-rgb: {{ bg.rgb }};
+    --color-foreground: rgb({{ fg.rgba }});
+    --color-foreground-rgb: {{ fg.rgb }};
+    --color-foreground-secondary: rgb({{ fg_muted.rgba }});
+
+    /* Accent / links (your brand primary) */
+    --color-accent: rgb({{ brand1.rgba }});
+    --color-accent-rgb: {{ brand1.rgb }};
+
+    /* Buttons (primary/secondary) */
+    --color-button: rgb({{ btn1_bg.rgba }});
+    --color-button-text: rgb({{ btn1_text.rgba }});
+    --color-button-border: rgb({{ btn1_bg.rgba }}); /* matches role map */
+
+    --color-button-secondary: rgb({{ btn2_bg.rgba }});
+    --color-on-button-secondary: rgb({{ btn2_text.rgba }});
+    --color-button-secondary-border: rgb({{ border_col.rgba }});
+
+    /* ===== Your convenience tokens ===== */
+    --color-header-background: rgb({{ header_bg.rgba }});
+    --color-brand-primary: rgb({{ brand1.rgba }});
+    --color-brand-primary-rgb: {{ brand1.rgb }};
+    --color-brand-secondary: rgb({{ brand2.rgba }});
+
+    {%- if surface != blank -%}
+      --color-surface: rgb({{ surface.rgba }});
+    {%- else -%}
+      /* derive subtle surface if not supplied */
+      --color-surface: color-mix(in srgb, rgb({{ bg.rgba }}) 96%, rgb({{ fg.rgba }}) 4%);
     {%- endif -%}
-    .color-scheme.color-scheme-{{ id }} {
-      /* ===== Core tokens (Shopify standard) ===== */
-      --color-background: rgb({{ bg.rgba }});
-      --color-background-rgb: {{ bg.rgb }};
-      --color-foreground: rgb({{ fg.rgba }});
-      --color-foreground-rgb: {{ fg.rgb }};
 
-      {%- if fg_secondary != blank -%}
-        --color-foreground-secondary: rgb({{ fg_secondary.rgba }});
-      {%- else -%}
-        --color-foreground-secondary: rgb({{ fg.rgb }});
-      {%- endif -%}
+    {%- if border_col != blank -%}
+      --color-border: rgb({{ border_col.rgba }});
+      --color-border-rgb: {{ border_col.rgb }};
+    {%- else -%}
+      /* 12% of foreground on transparent as sensible divider */
+      --color-border: color-mix(in srgb, rgb({{ fg.rgba }}) 12%, rgba(0,0,0,0));
+    {%- endif -%}
 
-      {%- if accent != blank -%}
-        --color-accent: rgb({{ accent.rgba }});
-        --color-accent-rgb: {{ accent.rgb }};
-      {%- endif -%}
+    /* ===== Button aliases used by buttons.css ===== */
+    --btn-primary-bg: var(--color-button);
+    --btn-primary-text: var(--color-button-text);
+    --btn-primary-border: var(--color-button-border);
 
-      {%- if btn_bg != blank -%}
-        --color-button: rgb({{ btn_bg.rgba }});
-      {%- endif -%}
-      {%- if btn_text != blank -%}
-        --color-button-text: rgb({{ btn_text.rgba }});
-      {%- endif -%}
+    --btn-secondary-bg: var(--color-button-secondary);
+    --btn-secondary-text: var(--color-on-button-secondary);
+    --btn-secondary-border: var(--color-button-secondary-border);
 
-      /* ===== Custom convenience tokens (from your group) ===== */
-      {%- if header_bg != blank -%}
-        --color-header-background: rgb({{ header_bg.rgba }});
-      {%- else -%}
-        --color-header-background: rgb({{ bg.rgba }}); /* fallback to background */
-      {%- endif -%}
-
-      {%- if brand2 != blank -%}
-        --color-brand-secondary: rgb({{ brand2.rgba }});
-      {%- endif -%}
-
-      {%- if surface != blank -%}
-        --color-surface: rgb({{ surface.rgba }});
-      {%- else -%}
-        /* gentle derived surface if not supplied */
-        --color-surface: color-mix(in srgb, var(--color-background) 96%, var(--color-foreground) 4%);
-      {%- endif -%}
-
-      {%- if border_col != blank -%}
-        --color-border: rgb({{ border_col.rgba }});
-        --color-border-rgb: {{ border_col.rgb }};
-      {%- else -%}
-        --color-border: color-mix(in srgb, var(--color-foreground) 12%, transparent);
-      {%- endif -%}
-
-      /* ===== Opacity helpers based on background brightness ===== */
-      {%- assign bg_brightness = bg | color_brightness -%}
-      {%- if bg_brightness < 64 -%}
-        --op-05-15: 0.15;
-        --op-10-25: 0.25;
-        --op-35-55: 0.55;
-      {%- else -%}
-        --op-05-15: 0.05;
-        --op-10-25: 0.10;
-        --op-35-55: 0.35;
-      {%- endif -%}
-    }
-  {%- endfor -%}
-
-  /* Sitewide wrapper convenience */
-  body.color-scheme {
-    color: var(--color-foreground);
-    background-color: var(--color-background);
+    /* ===== Opacity helpers based on bg brightness ===== */
+    {%- assign bg_brightness = bg | color_brightness -%}
+    {%- if bg_brightness < 64 -%}
+      --op-05-15: 0.15;
+      --op-10-25: 0.25;
+      --op-35-55: 0.55;
+    {%- else -%}
+      --op-05-15: 0.05;
+      --op-10-25: 0.10;
+      --op-35-55: 0.35;
+    {%- endif -%}
   }
+{%- endfor -%}
+
+/* Sitewide default application: set body to the default scheme values */
+body.color-scheme {
+  color: var(--color-foreground);
+  background-color: var(--color-background);
+}
 {% endstyle %}

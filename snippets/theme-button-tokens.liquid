@@ -1,0 +1,57 @@
+{%- comment -%}
+Reads Colours → color_schemes and default_color_scheme,
+plus Design system + Buttons settings, and exposes CSS vars.
+{%- endcomment -%}
+
+{%- assign scheme = settings.color_schemes | where: 'id', settings.default_color_scheme | first -%}
+{%- assign c = scheme.settings -%}
+
+{%- comment -%} Shape {%- endcomment -%}
+{%- assign btn_radius =
+  settings.radius | append: 'px' -%}
+{%- if settings.btn_shape == 'pill' -%}
+  {%- assign btn_radius = '999px' -%}
+{%- elsif settings.btn_shape == 'square' -%}
+  {%- assign btn_radius = '0px' -%}
+{%- endif -%}
+
+{%- comment -%} Elevation map (0–5) -> box-shadow {%- endcomment -%}
+{%- assign sd = settings.shadow_depth | plus: 0 -%}
+{%- case sd -%}
+  {%- when 0 -%}{% assign shadow_1 = 'none' %}
+  {%- when 1 -%}{% assign shadow_1 = '0 1px 2px rgba(0,0,0,.06)' %}
+  {%- when 2 -%}{% assign shadow_1 = '0 2px 6px rgba(0,0,0,.08)' %}
+  {%- when 3 -%}{% assign shadow_1 = '0 4px 10px rgba(0,0,0,.10)' %}
+  {%- when 4 -%}{% assign shadow_1 = '0 6px 16px rgba(0,0,0,.12)' %}
+  {%- else -%}{% assign shadow_1 = '0 10px 24px rgba(0,0,0,.14)' %}
+{%- endcase -%}
+
+{%- style -%}
+:root{
+  /* Primary button */
+  --btn-primary-bg: {{ c.button_primary_bg }};
+  --btn-primary-text: {{ c.button_primary_text }};
+  --btn-primary-border: {{ c.button_primary_bg }};
+
+  /* Secondary button */
+  --btn-secondary-bg: {{ c.button_secondary_bg }};
+  --btn-secondary-text: {{ c.button_secondary_text }};
+  --btn-secondary-border: {{ c.border_color }};
+
+  /* Generic surface/text if needed */
+  --surface-bg: {{ c.surface_bg }};
+  --text-color: {{ c.text_color }};
+  --border-color: {{ c.border_color }};
+
+  /* Shape + elevation */
+  --btn-radius: {{ btn_radius }};
+  --btn-shadow: {{ shadow_1 }};
+
+  /* Spacing + font (optional defaults) */
+  --btn-h: 44px;
+  --btn-pad-x: 16px;
+  --btn-gap: .5rem;
+  --btn-font: 600 0.9375rem/1 {{ settings.font_body.family | default: 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial' }};
+  --focus-ring: 0 0 0 3px rgba(0,0,0,.15);
+}
+{%- endstyle -%}
