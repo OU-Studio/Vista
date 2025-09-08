@@ -1,47 +1,392 @@
 {% comment %}
-  This section is used in the collection template to render collection page
-  listing all products within a collection.
+All Collections Grid
+- Shows (optionally filtered) *all* collections.
+- Section kicker + title.
+- Columns per row: mobile & desktop.
+- Gap/spacing control.
+- Collection title: none / above / below / overlay.
+- Overlay text alignment: horizontal & vertical controls.
+- Text style: H1–H6, body, or button.
 
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
+Notes:
+- Collections loop is alphabetical by handle (Shopify default). You can add simple filters below.
+- Fallback image: uses the first product image if collection.image is blank (optional, off by default).
 {% endcomment %}
 
-<h1>{{ collection.title }}</h1>
+{%- liquid
+  assign scheme = section.settings.color_scheme | default: settings.default_color_scheme | default: 'scheme-1'
+  assign maxw   = section.settings.max_width | default: 1200
+  assign grid_gap = section.settings.grid_gap | default: 24
+  assign show_kicker = section.settings.kicker 
+  assign show_title  = section.settings.title 
+-%}
 
-<div class="collection-products">
-  {% paginate collection.products by 20 %}
-    {% for product in collection.products %}
-      <div class="collection-product">
-        {% if product.featured_image %}
-          {% render 'image',
-            class: 'collection-product__image',
-            image: product.featured_image,
-            url: product.url,
-            width: 400,
-            height: 400,
-            crop: 'center'
-          %}
-        {% endif %}
-        <div class="collection-product__content">
-          <p>{{ product.title | escape | link_to: product.url }}</p>
-          <p>{{ product.price | money }}</p>
-        </div>
-      </div>
-    {% endfor %}
-
-    {{ paginate | default_pagination }}
-  {% endpaginate %}
-</div>
-
-{% stylesheet %}
-  .collection-products {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+<style>
+  .acg-{{ section.id }} { }
+  .acg-{{ section.id }} .acg__wrap {
+    margin-inline: auto;
+    padding-inline: var(--gutter, 24px);
+    max-width: {{ maxw }}px;
   }
-{% endstylesheet %}
+
+  .acg-{{ section.id }} .acg__head {
+    display: grid;
+    gap: {{ section.settings.head_gap | default: 12 }}px;
+    margin-bottom: {{ section.settings.head_margin_bottom | default: 24 }}px;
+    text-align: {{ section.settings.head_align | default: 'center' }};
+  }
+  .acg-{{ section.id }} .acg__kicker { font-size: .85em; letter-spacing: .06em; text-transform: uppercase; opacity: .8; }
+  .acg-{{ section.id }} .acg__title  { margin: 0; }
+
+  /* GRID (Flex so last row can be left/center/right) */
+  .acg-{{ section.id }} .cg__grid {
+    --gap: {{ grid_gap }}px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap);
+    justify-content:
+      {% case section.settings.row_align %}
+        {% when 'left' %}flex-start
+        {% when 'right' %}flex-end
+        {% else %}center
+      {% endcase %};
+    align-items:
+      {% case section.settings.row_valign %}
+        {% when 'top' %}flex-start
+        {% when 'center' %}center
+        {% when 'bottom' %}flex-end
+        {% else %}stretch
+      {% endcase %};
+  }
+
+  /* Item widths (no grow so last row items keep same width) */
+  .acg-{{ section.id }} .cg {
+    flex: 0 1 100%;
+    max-width: 100%;
+    display: grid;
+    gap: {{ section.settings.card_gap | default: 10 }}px;
+    height: 100%;
+    position: relative;
+  }
+  @media (min-width: 750px){
+    .acg-{{ section.id }} .cg__grid[data-cols-m="1"] .cg { flex-basis: 100%; max-width: 100%; }
+    .acg-{{ section.id }} .cg__grid[data-cols-m="2"] .cg { flex-basis: calc((100% - var(--gap)) / 2); max-width: calc((100% - var(--gap)) / 2); }
+    .acg-{{ section.id }} .cg__grid[data-cols-m="3"] .cg { flex-basis: calc((100% - (2 * var(--gap))) / 3); max-width: calc((100% - (2 * var(--gap))) / 3); }
+  }
+  @media (min-width: 990px){
+    .acg-{{ section.id }} .cg__grid[data-cols-d="1"] .cg { flex-basis: 100%; max-width: 100%; }
+    .acg-{{ section.id }} .cg__grid[data-cols-d="2"] .cg { flex-basis: calc((100% - var(--gap)) / 2); max-width: calc((100% - var(--gap)) / 2); }
+    .acg-{{ section.id }} .cg__grid[data-cols-d="3"] .cg { flex-basis: calc((100% - (2 * var(--gap))) / 3); max-width: calc((100% - (2 * var(--gap))) / 3); }
+    .acg-{{ section.id }} .cg__grid[data-cols-d="4"] .cg { flex-basis: calc((100% - (3 * var(--gap))) / 4); max-width: calc((100% - (3 * var(--gap))) / 4); }
+  }
+
+  /* In your section <style> block, add: */
+.acg-{{ section.id }} .cg > .cg__btn {
+  display: inline-flex;          /* shrink to content */
+  width: auto;                   /* don’t fill parent */
+  max-width: max-content;        /* clamp to text width */
+  align-self: start;             /* left-align by default; change to center/end if you want */
+}
+
+/* If something upstream forces width:100%, hard-override it */
+.acg-{{ section.id }} .cg > .cg__btn {
+  width: auto !important;
+}
+
+/* Card is a grid; use justify-self to position the title node */
+.acg-{{ section.id }} .cg--ta-left  > .cg__title,
+.acg-{{ section.id }} .cg--ta-left  > .cg__btn  { justify-self: start; text-align: left; }
+
+.acg-{{ section.id }} .cg--ta-center > .cg__title,
+.acg-{{ section.id }} .cg--ta-center > .cg__btn { justify-self: center; text-align: center; }
+
+.acg-{{ section.id }} .cg--ta-right > .cg__title,
+.acg-{{ section.id }} .cg--ta-right > .cg__btn  { justify-self: end; text-align: right; }
+
+
+  /* Card */
+  .acg-{{ section.id }} .cg__media {
+    position: relative;
+    overflow: hidden;
+    border-radius: {{ settings.radius | default: 0 }}px;
+    aspect-ratio: {{ section.settings.aspect_ratio | default: '16 / 9' }};
+    background: rgba(0,0,0,.05);
+  }
+  .acg-{{ section.id }} .cg__media img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+
+  /* Overlay title */
+  .acg-{{ section.id }} .cg__overlay {
+    position: absolute; inset: 0;
+    display: flex;
+    padding: {{ section.settings.overlay_pad | default: 16 }}px;
+    pointer-events: none;
+  }
+  .acg-{{ section.id }} .cg__overlay-inner {
+    pointer-events: auto; /* keep links clickable when using "button" style */
+  }
+
+  /* Above/Below spacing */
+  .acg-{{ section.id }} .cg__title { margin: 0; text-align: {{ section.settings.overlay_h }} }
+  .acg-{{ section.id }} .cg__title--above { order: -1; }
+
+  /* Scrim behind overlay text (uses --scrim) */
+.acg-{{ section.id }} .cg__overlay {
+  position: absolute; inset: 0;
+  display: flex;
+  padding: {{ section.settings.overlay_pad | default: 16 }}px;
+  pointer-events: none;
+}
+
+.acg-{{ section.id }} .cg__overlay::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: rgba(0,0,0, var(--scrim, 0)); /* 0..1 */
+}
+
+.acg-{{ section.id }} .cg__overlay-inner {
+  position: relative;
+  pointer-events: auto;
+  color: var(--overlay-text, currentColor); /* falls back to currentColor */
+}
+
+
+</style>
+
+<section class="acg-{{ section.id }} color-scheme color-scheme-{{ scheme }}">
+  <div class="acg__wrap">
+
+    {% if show_kicker or show_title %}
+      <header class="acg__head">
+        {% if show_kicker %}<div class="acg__kicker">{{ section.settings.kicker | escape }}</div>{% endif %}
+        {% if show_title %}
+          {%- assign htag = section.settings.title_tag | default: 'h2' -%}
+          <{{ htag }} class="acg__title">{{ section.settings.title | escape }}</{{ htag }}>
+        {% endif %}
+      </header>
+    {% endif %}
+
+    <div
+      class="cg__grid"
+      data-cols-m="{{ section.settings.cols_mobile | default: '1' }}"
+      data-cols-d="{{ section.settings.cols_desktop | default: '3' }}"
+      style="--gap: {{ grid_gap }}px"
+    >
+      {%- comment -%}
+        Build list of collections.
+        You can add filters: skip "frontpage", skip empty, limit, etc.
+      {%- endcomment -%}
+      {%- assign limit = section.settings.limit | default: 100 -%}
+      {%- assign show_empty = section.settings.show_empty -%}
+      {%- assign count = 0 -%}
+      {%- for c in collections -%}
+        {%- if c == blank -%}{% continue %}{%- endif -%}
+        {%- if c.handle == 'frontpage' and section.settings.skip_frontpage %}{% continue %}{%- endif -%}
+        {%- if show_empty == false and c.all_products_count == 0 %}{% continue %}{%- endif -%}
+        {%- assign count = count | plus: 1 -%}
+        {%- if count > limit -%}{% break %}{%- endif -%}
+
+        {%- liquid
+          assign img = c.image
+          if img == blank and section.settings.fallback_first_product and c.products_count > 0
+            assign firstp = c.products | first
+            if firstp and firstp.featured_image
+              assign img = firstp.featured_image
+            endif
+          endif
+        -%}
+
+        <article class="cg {% if section.settings.title_position != 'overlay' %}cg--ta-{{ section.settings.overlay_h }}{% endif %}">
+          {%- if section.settings.title_position == 'above' and section.settings.show_collection_title -%}
+            {% render 'acg-title', c: c, style: section.settings.text_style %}
+          {%- endif -%}
+
+          <a class="cg__media" href="{{ c.url }}" aria-label="{{ c.title | escape }}">
+            {%- if img -%}
+              <img
+                src="{{ img | image_url: width: 1100 }}"
+                srcset="
+                  {{ img | image_url: width: 375 }} 375w,
+                  {{ img | image_url: width: 550 }} 550w,
+                  {{ img | image_url: width: 750 }} 750w,
+                  {{ img | image_url: width: 990 }} 990w,
+                  {{ img | image_url: width: 1100 }} 1100w
+                "
+                sizes="(min-width: 990px) 33vw, (min-width: 750px) 50vw, 100vw"
+                alt="{{ c.title | escape }}"
+                loading="lazy"
+                width="{{ img.width }}" height="{{ img.height }}">
+            {%- endif -%}
+
+            {% if section.settings.title_position == 'overlay' and section.settings.show_collection_title %}
+              <div class="cg__overlay"
+                  style="
+                    --scrim: {{ section.settings.overlay_opacity | default: 0 }};
+                    --overlay-text: {{ section.settings.overlay_text_color }};
+                    justify-content: {% case section.settings.overlay_h %}{% when 'left' %}flex-start{% when 'right' %}flex-end{% else %}center{% endcase %};
+                    align-items: {% case section.settings.overlay_v %}{% when 'top' %}flex-start{% when 'bottom' %}flex-end{% else %}center{% endcase %};
+                  ">
+                <div class="cg__overlay-inner">
+                  {% render 'acg-title', c: c, style: section.settings.text_style, overlay: true %}
+                </div>
+              </div>
+            {% endif %}
+
+          </a>
+
+          {%- if section.settings.title_position == 'below' and section.settings.show_collection_title -%}
+            {% render 'acg-title', c: c, style: section.settings.text_style %}
+          {%- endif -%}
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% comment %}
+Small snippet-like include to keep title rendering DRY without a separate file.
+Accepts:
+- c: collection object
+- style: 'h1'..'h6' | 'body' | 'button'
+- overlay: boolean (optional) – when true, allow button to be clickable on overlay
+{% endcomment %}
+{%- capture _acg_title -%}
+{%- liquid
+  assign _c = c
+  assign _style = style | default: 'h3'
+  assign _overlay = overlay | default: false
+  assign label = _c.title
+-%}
+{%- case _style -%}
+  {%- when 'body' -%}
+    <div class="cg__title">{{ label | escape }}</div>
+  {%- when 'button' -%}
+    <a class="cg__btn button button--primary" href="{{ _c.url }}">{{ label | escape }}</a>
+  {%- else -%}
+    <{{ _style }} class="cg__title">{{ label | escape }}</{{ _style }}>
+{%- endcase -%}
+{%- endcapture -%}
+{%- assign __ = _acg_title -%}{% comment %} noop to satisfy Liquid {% endcomment %}
 
 {% schema %}
 {
-  "name": "t:general.collection",
-  "settings": []
+  "name": "All collections grid",
+  "tag": "section",
+  "class": "section--all-collections",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" },
+    { "type": "range", "id": "max_width", "label": "Max width", "min": 600, "max": 1600, "step": 20, "unit": "px", "default": 1200 },
+
+    { "type": "header", "content": "Header" },
+    { "type": "text", "id": "kicker", "label": "Kicker" },
+    { "type": "text", "id": "title",  "label": "Title" },
+    { "type": "select", "id": "title_tag", "label": "Title tag", "default": "h2",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" },
+        { "value": "h4", "label": "H4" },
+        { "value": "h5", "label": "H5" },
+        { "value": "h6", "label": "H6" }
+      ]
+    },
+    { "type": "select", "id": "head_align", "label": "Header alignment", "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    { "type": "range", "id": "head_gap", "label": "Header gap", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 12 },
+    { "type": "range", "id": "head_margin_bottom", "label": "Space under header", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 24 },
+
+    { "type": "header", "content": "Grid" },
+    { "type": "select", "id": "cols_mobile", "label": "Collections per row (tablet ≥750px)", "default": "2",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" }
+      ]
+    },
+    { "type": "select", "id": "cols_desktop", "label": "Collections per row (desktop ≥990px)", "default": "3",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ]
+    },
+    { "type": "range", "id": "grid_gap", "label": "Spacing between cards", "min": 0, "max": 64, "step": 2, "unit": "px", "default": 24 },
+    { "type": "range", "id": "card_gap", "label": "Spacing within a card (title/image)", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 10 },
+
+    { "type": "select", "id": "row_align", "label": "Last row alignment", "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    { "type": "select", "id": "row_valign", "label": "Row vertical alignment", "default": "stretch",
+      "options": [
+        { "value": "stretch", "label": "Stretch (equal heights)" },
+        { "value": "top", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ]
+    },
+
+    { "type": "header", "content": "Collection title display" },
+    { "type": "checkbox", "id": "show_collection_title", "label": "Show collection title", "default": true },
+    { "type": "select", "id": "title_position", "label": "Title position", "default": "overlay",
+      "options": [
+        { "value": "overlay", "label": "Overlay on image" },
+        { "value": "above", "label": "Above image" },
+        { "value": "below", "label": "Below image" }
+      ]
+    },
+    { "type": "select", "id": "text_style", "label": "Title style", "default": "h3",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" },
+        { "value": "h4", "label": "H4" },
+        { "value": "h5", "label": "H5" },
+        { "value": "h6", "label": "H6" },
+        { "value": "body", "label": "Body text" },
+        { "value": "button", "label": "Button" }
+      ]
+    },
+    { "type": "select", "id": "overlay_h", "label": "Horizontal", "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+
+    { "type": "header", "content": "Overlay settings" },
+    { "type": "range", "id": "overlay_pad", "label": "Overlay padding", "min": 0, "max": 60, "step": 2, "unit": "px", "default": 16 },
+    { "type": "select", "id": "overlay_v", "label": "Vertical", "default": "center",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ]
+    },
+    { "type": "range", "id": "overlay_opacity", "label": "Overlay opacity", "min": 0, "max": 1, "step": 0.1, "default": 0.3 },
+{ "type": "color", "id": "overlay_text_color", "label": "Overlay text color", "default": "#ffffff" },
+
+    { "type": "header", "content": "Images & data" },
+    { "type": "text", "id": "aspect_ratio", "label": "Image aspect ratio (e.g. 4 / 3, 1 / 1, 16 / 9)", "default": "16 / 9" },
+    { "type": "checkbox", "id": "fallback_first_product", "label": "Fallback to first product image when collection image is empty", "default": false },
+    { "type": "checkbox", "id": "skip_frontpage", "label": "Skip 'Frontpage' collection", "default": true },
+    { "type": "checkbox", "id": "show_empty", "label": "Include empty collections", "default": false },
+    { "type": "range", "id": "limit", "label": "Max collections to show", "min": 1, "max": 100, "step": 1, "default": 20 }
+  ],
+  "blocks": [],
+  "presets": [
+    { "name": "All collections grid" }
+  ]
 }
 {% endschema %}

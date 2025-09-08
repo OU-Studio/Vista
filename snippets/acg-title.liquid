@@ -1,0 +1,13 @@
+{%- assign _c = c -%}
+{%- assign _style = style | default: 'h3' -%}
+{%- assign _overlay = overlay | default: false -%}
+{%- assign label = _c.title -%}
+
+{%- case _style -%}
+  {%- when 'body' -%}
+    <div class="cg__title">{{ label | escape }}</div>
+  {%- when 'button' -%}
+    <a class="cg__btn button button--primary" href="{{ _c.url }}">{{ label | escape }}</a>
+  {%- else -%}
+    <{{ _style }} class="cg__title">{{ label | escape }}</{{ _style }}>
+{%- endcase -%}

@@ -98,9 +98,43 @@
         "pad_top": 120,
         "pad_bottom": 100
       }
+    },
+    "collection_YtYTTU": {
+      "type": "collection",
+      "name": "All collections grid",
+      "settings": {
+        "color_scheme": "",
+        "max_width": 1200,
+        "kicker": "",
+        "title": "",
+        "title_tag": "h2",
+        "head_align": "center",
+        "head_gap": 12,
+        "head_margin_bottom": 24,
+        "cols_mobile": "2",
+        "cols_desktop": "2",
+        "grid_gap": 24,
+        "card_gap": 10,
+        "row_align": "center",
+        "row_valign": "stretch",
+        "show_collection_title": true,
+        "title_position": "overlay",
+        "text_style": "h3",
+        "overlay_h": "center",
+        "overlay_pad": 16,
+        "overlay_v": "center",
+        "overlay_opacity": 0.3,
+        "overlay_text_color": "#ffffff",
+        "aspect_ratio": "16 / 9",
+        "fallback_first_product": true,
+        "skip_frontpage": true,
+        "show_empty": false,
+        "limit": 20
+      }
     }
   },
   "order": [
-    "rich_text_myxM8F"
+    "rich_text_myxM8F",
+    "collection_YtYTTU"
   ]
 }
