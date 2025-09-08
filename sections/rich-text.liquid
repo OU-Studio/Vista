@@ -1,0 +1,401 @@
+{% comment %}
+Rich Text (Groups) with responsive columns + per-group inner gap + image above/below
+{% endcomment %}
+
+{%- liquid
+  assign scheme = section.settings.color_scheme | default: settings.default_color_scheme | default: 'scheme-1'
+  assign maxw   = section.settings.max_width | default: 1200
+  assign align  = section.settings.text_align | default: 'center'
+-%}
+
+<style>
+  .section-{{ section.id }}-pad {
+    padding-block: {{ section.settings.pad_top | default: 40 }}px {{ section.settings.pad_bottom | default: 40 }}px;
+  }
+  .rt-{{ section.id }} .rt__wrap {
+    margin-inline: auto;
+    padding-inline: var(--gutter, 24px);
+    max-width: {{ maxw }}px;
+  }
+
+  /* Grid of groups */
+  .rt-{{ section.id }} .rt__grid {
+    --group-gap: {{ section.settings.group_gap | default: 28 }}px;
+    display: grid;
+    gap: var(--group-gap);
+    grid-template-columns: 1fr; /* mobile */
+  }
+  @media (min-width: 750px){
+    .rt-{{ section.id }} .rt__grid[data-cols-tablet="1"] { grid-template-columns: 1fr; }
+    .rt-{{ section.id }} .rt__grid[data-cols-tablet="2"] { grid-template-columns: repeat(2, 1fr); }
+    .rt-{{ section.id }} .rt__grid[data-cols-tablet="3"] { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 990px){
+    .rt-{{ section.id }} .rt__grid[data-cols-desktop="1"] { grid-template-columns: 1fr; }
+    .rt-{{ section.id }} .rt__grid[data-cols-desktop="2"] { grid-template-columns: repeat(2, 1fr); }
+    .rt-{{ section.id }} .rt__grid[data-cols-desktop="3"] { grid-template-columns: repeat(3, 1fr); }
+    .rt-{{ section.id }} .rt__grid[data-cols-desktop="4"] { grid-template-columns: repeat(4, 1fr); }
+  }
+
+/* Section default alignment for leftover items in a row */
+.rt-{{ section.id }} .rt__grid {
+    --group-gap: {{ section.settings.group_gap | default: 28 }}px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--group-gap);
+
+    /* horizontal alignment of leftover items in the last row */
+    justify-content:
+      {% if section.settings.text_align == 'left' %}flex-start
+      {% elsif section.settings.text_align == 'right' %}flex-end
+      {% else %}center{% endif %};
+
+    /* vertical alignment of items within each row */
+    align-items:
+      {% case section.settings.row_v_align %}
+        {% when 'top' %}flex-start
+        {% when 'center' %}center
+        {% when 'bottom' %}flex-end
+        {% else %}stretch
+      {% endcase %};
+  }
+
+  /* Base: items DO NOT grow */
+.rt-{{ section.id }} .rt__grid > .rtg {
+  flex: 0 1 100%;    /* no grow, allow shrink, 100% on mobile */
+  max-width: 100%;
+}
+
+/* Tablet widths */
+@media (min-width: 750px){
+  .rt-{{ section.id }} .rt__grid[data-cols-tablet="1"] > .rtg {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .rt-{{ section.id }} .rt__grid[data-cols-tablet="2"] > .rtg {
+    flex: 0 0 calc((100% - var(--group-gap)) / 2);
+    max-width: calc((100% - var(--group-gap)) / 2);
+  }
+  .rt-{{ section.id }} .rt__grid[data-cols-tablet="3"] > .rtg {
+    flex: 0 0 calc((100% - (2 * var(--group-gap))) / 3);
+    max-width: calc((100% - (2 * var(--group-gap))) / 3);
+  }
+}
+
+/* Desktop widths */
+@media (min-width: 990px){
+  .rt-{{ section.id }} .rt__grid[data-cols-desktop="1"] > .rtg {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .rt-{{ section.id }} .rt__grid[data-cols-desktop="2"] > .rtg {
+    flex: 0 0 calc((100% - var(--group-gap)) / 2);
+    max-width: calc((100% - var(--group-gap)) / 2);
+  }
+  .rt-{{ section.id }} .rt__grid[data-cols-desktop="3"] > .rtg {
+    flex: 0 0 calc((100% - (2 * var(--group-gap))) / 3);
+    max-width: calc((100% - (2 * var(--group-gap))) / 3);
+  }
+  .rt-{{ section.id }} .rt__grid[data-cols-desktop="4"] > .rtg {
+    flex: 0 0 calc((100% - (3 * var(--group-gap))) / 4);
+    max-width: calc((100% - (3 * var(--group-gap))) / 4);
+  }
+}
+
+/* Optional: if you’re using align-items:stretch for equal heights */
+.rt-{{ section.id }} .rtg { height: 100%; }
+
+
+
+  /* Content group */
+  .rt-{{ section.id }} .rtg {
+    --inner-gap: {{ section.settings.block_gap | default: 16 }}px; /* fallback */
+    display: grid;
+    gap: var(--inner-gap);
+  }
+  .rt-{{ section.id }} .rtg--align-left   { text-align: left; }
+  .rt-{{ section.id }} .rtg--align-center { text-align: center; }
+  .rt-{{ section.id }} .rtg--align-right  { text-align: right; }
+
+  .rt-{{ section.id }} .rtg__kicker { font-size:.85em; letter-spacing:.06em; text-transform:uppercase; opacity:.8; }
+  .rt-{{ section.id }} .rtg__title { margin:0; }
+  .rt-{{ section.id }} .rtg__body :where(p,ul,ol){ margin:0; }
+  .rt-{{ section.id }} .rtg__buttons { display:inline-flex; gap:12px; flex-wrap:wrap; }
+
+  /* default inner gap for all groups in this section */
+.rt-{{ section.id }} .rtg { --inner-gap: {{ section.settings.block_gap | default: 16 }}px; }
+
+/* space between items inside the content area of a group */
+.rt-{{ section.id }} .rtg__content > * + * {
+  margin-top: var(--inner-gap);
+}
+
+
+  /* Image handling */
+  .rt-{{ section.id }} .rtg--has-image { display:grid; }
+  @media (min-width: 750px){
+    /* Only left/right become two columns; above/below remain stacked */
+    .rt-{{ section.id }} .rtg--image-left,
+    .rt-{{ section.id }} .rtg--image-right { grid-template-columns: 1fr 1fr; align-items:center; }
+    .rt-{{ section.id }} .rtg--image-right .rtg__image { order: 2; }
+  }
+  .rt-{{ section.id }} .rtg__image img { display:block; width:100%; height:auto; border-radius: {{ settings.radius | default: 0 }}px; }
+
+  .rt-{{ section.id }} .rtg__divider { height:1px; width:100%; background: currentColor; opacity:.15; }
+</style>
+
+<section class="rt-{{ section.id }} color-scheme color-scheme-{{ scheme }} section-{{ section.id }}-pad">
+  <div class="rt__wrap">
+    <div
+      class="rt__grid"
+      data-cols-tablet="{{ section.settings.columns_tablet | default: '1' }}"
+      data-cols-desktop="{{ section.settings.columns_desktop | default: '2' }}"
+    >
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'group' -%}
+          {%- assign g_align = block.settings.align | default: 'inherit' -%}
+          {%- assign g_has_image = block.settings.image -%}
+          {%- assign img_pos = block.settings.image_position | default: 'none' -%}
+          {%- assign g_classes = 'rtg' -%}
+          {%- if g_has_image and img_pos != 'none' -%}
+            {%- assign g_classes = g_classes | append: ' rtg--has-image rtg--image-' | append: img_pos -%}
+          {%- endif -%}
+          {%- unless g_align == 'inherit' -%}
+            {%- assign g_classes = g_classes | append: ' rtg--align-' | append: g_align -%}
+          {%- endunless -%}
+
+          <div class="{{ g_classes }}" {{ block.shopify_attributes }} style="{% if block.settings.inner_gap %}--inner-gap: {{ block.settings.inner_gap }}px;{% endif %}">
+            {%- comment -%} Image ABOVE/LEFT: render before content; RIGHT uses order CSS; BELOW renders after content {%- endcomment -%}
+            {%- if g_has_image and img_pos != 'none' and img_pos != 'below' -%}
+              <figure class="rtg__image">
+                {%- assign img = block.settings.image -%}
+                <img
+                  src="{{ img | image_url: width: 1500 }}"
+                  srcset="
+                    {{ img | image_url: width: 375 }} 375w,
+                    {{ img | image_url: width: 550 }} 550w,
+                    {{ img | image_url: width: 750 }} 750w,
+                    {{ img | image_url: width: 1100 }} 1100w,
+                    {{ img | image_url: width: 1500 }} 1500w
+                  "
+                  sizes="{% if img_pos == 'left' or img_pos == 'right' %}(min-width: 750px) 50vw, 92vw{% else %}92vw{% endif %}"
+                  alt="{{ block.settings.image_alt | default: img.alt | escape }}"
+                  loading="{{ block.settings.image_loading | default: 'lazy' }}"
+                  width="{{ img.width }}" height="{{ img.height }}">
+                {%- if block.settings.image_caption != blank -%}
+                  <figcaption>{{ block.settings.image_caption }}</figcaption>
+                {%- endif -%}
+              </figure>
+            {%- endif -%}
+
+            <div class="rtg__content">
+              {%- if block.settings.kicker != blank -%}
+                <div class="rtg__kicker">{{ block.settings.kicker | escape }}</div>
+              {%- endif -%}
+
+              {%- if block.settings.heading != blank -%}
+                {%- assign tag = block.settings.heading_tag | default: 'h2' -%}
+                <{{ tag }} class="rtg__title">{{ block.settings.heading | escape }}</{{ tag }}>
+              {%- endif -%}
+
+              {%- if block.settings.body != blank -%}
+                <div class="rtg__body">
+                  {{ block.settings.body }}
+                </div>
+              {%- endif -%}
+
+              {%- if block.settings.btn_label_1 != blank or block.settings.btn_label_2 != blank -%}
+                <div class="rtg__buttons">
+                  {%- if block.settings.btn_label_1 != blank -%}
+                    <a href="{{ block.settings.btn_url_1 | default: routes.root_url }}"
+                       class="button button--{{ block.settings.btn_style_1 | default: 'primary' }}">
+                      {{ block.settings.btn_label_1 }}
+                    </a>
+                  {%- endif -%}
+                  {%- if block.settings.btn_label_2 != blank -%}
+                    <a href="{{ block.settings.btn_url_2 | default: routes.root_url }}"
+                       class="button button--{{ block.settings.btn_style_2 | default: 'secondary' }}">
+                      {{ block.settings.btn_label_2 }}
+                    </a>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            </div>
+
+            {%- if g_has_image and img_pos == 'below' -%}
+              <figure class="rtg__image">
+                {%- assign img = block.settings.image -%}
+                <img
+                  src="{{ img | image_url: width: 1500 }}"
+                  srcset="
+                    {{ img | image_url: width: 375 }} 375w,
+                    {{ img | image_url: width: 550 }} 550w,
+                    {{ img | image_url: width: 750 }} 750w,
+                    {{ img | image_url: width: 1100 }} 1100w,
+                    {{ img | image_url: width: 1500 }} 1500w
+                  "
+                  sizes="92vw"
+                  alt="{{ block.settings.image_alt | default: img.alt | escape }}"
+                  loading="{{ block.settings.image_loading | default: 'lazy' }}"
+                  width="{{ img.width }}" height="{{ img.height }}">
+                {%- if block.settings.image_caption != blank -%}
+                  <figcaption>{{ block.settings.image_caption }}</figcaption>
+                {%- endif -%}
+              </figure>
+            {%- endif -%}
+
+            {%- if block.settings.show_divider -%}
+              <div class="rtg__divider" aria-hidden="true"></div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Rich text (Groups)",
+  "tag": "section",
+  "class": "section--rich-text",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" },
+    { "type": "range", "id": "max_width", "label": "Max width", "min": 600, "max": 1600, "step": 20, "unit": "px", "default": 1200 },
+
+    { "type": "select", "id": "text_align", "label": "Row horizontal alignment", "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    { "type": "select", "id": "row_v_align", "label": "Row vertical alignment", "default": "stretch",
+  "options": [
+    { "value": "stretch", "label": "Stretch (equal heights)" },
+    { "value": "top",     "label": "Top" },
+    { "value": "center",  "label": "Center" },
+    { "value": "bottom",  "label": "Bottom" }
+  ]
+},
+
+
+    { "type": "header", "content": "Layout" },
+    { "type": "select", "id": "columns_tablet", "label": "Groups per row (tablet ≥750px)", "default": "1",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" }
+      ]
+    },
+    { "type": "select", "id": "columns_desktop", "label": "Groups per row (desktop ≥990px)", "default": "2",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ]
+    },
+    { "type": "range", "id": "group_gap", "label": "Space between groups", "min": 8, "max": 80, "step": 2, "unit": "px", "default": 28 },
+    { "type": "range", "id": "block_gap", "label": "Default inner gap (within a group)", "min": 6, "max": 48, "step": 2, "unit": "px", "default": 16 },
+
+    { "type": "header", "content": "Section padding" },
+    { "type": "range", "id": "pad_top", "label": "Padding top", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 40 },
+    { "type": "range", "id": "pad_bottom", "label": "Padding bottom", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 40 }
+  ],
+  "blocks": [
+    {
+      "type": "group",
+      "name": "Content group",
+      "limit": 24,
+      "settings": [
+        { "type": "header", "content": "Content" },
+        { "type": "text", "id": "kicker", "label": "Kicker" },
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Say something meaningful" },
+        { "type": "select", "id": "heading_tag", "label": "Heading tag", "default": "h2",
+          "options": [
+            { "value": "h1", "label": "H1" },
+            { "value": "h2", "label": "H2" },
+            { "value": "h3", "label": "H3" },
+            { "value": "h4", "label": "H4" }
+          ]
+        },
+        { "type": "richtext", "id": "body", "label": "Body", "default": "<p>Use this area to add longer text, links, and lists.</p>" },
+
+        { "type": "header", "content": "Buttons" },
+        { "type": "text", "id": "btn_label_1", "label": "Button 1 label" },
+        { "type": "url", "id": "btn_url_1", "label": "Button 1 link" },
+        { "type": "select", "id": "btn_style_1", "label": "Button 1 style", "default": "primary",
+          "options": [
+            { "value": "primary", "label": "Primary" },
+            { "value": "secondary", "label": "Secondary" },
+            { "value": "link", "label": "Text link" }
+          ]
+        },
+        { "type": "text", "id": "btn_label_2", "label": "Button 2 label" },
+        { "type": "url", "id": "btn_url_2", "label": "Button 2 link" },
+        { "type": "select", "id": "btn_style_2", "label": "Button 2 style", "default": "secondary",
+          "options": [
+            { "value": "primary", "label": "Primary" },
+            { "value": "secondary", "label": "Secondary" },
+            { "value": "link", "label": "Text link" }
+          ]
+        },
+
+        { "type": "header", "content": "Layout" },
+        { "type": "select", "id": "align", "label": "Content alignment", "default": "center",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ]
+        },
+        { "type": "range", "id": "inner_gap", "label": "Inner gap", "min": 6, "max": 48, "step": 2, "unit": "px", "default": 16 },
+
+        { "type": "image_picker", "id": "image", "label": "Optional image" },
+        { "type": "text", "id": "image_alt", "label": "Image alt text" },
+        { "type": "text", "id": "image_caption", "label": "Image caption" },
+        { "type": "select", "id": "image_loading", "label": "Image loading", "default": "lazy",
+          "options": [
+            { "value": "lazy", "label": "Lazy" },
+            { "value": "eager", "label": "Eager" }
+          ]
+        },
+        { "type": "select", "id": "image_position", "label": "Image position", "default": "none",
+          "options": [
+            { "value": "none",  "label": "No image" },
+            { "value": "above", "label": "Above content" },
+            { "value": "below", "label": "Below content" },
+            { "value": "left",  "label": "Left (2 columns ≥750px)" },
+            { "value": "right", "label": "Right (2 columns ≥750px)" }
+          ]
+        },
+        { "type": "checkbox", "id": "show_divider", "label": "Show subtle divider under group", "default": false }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Rich text (Groups)",
+      "blocks": [
+        { "type": "group",
+          "settings": {
+            "kicker": "kicker",
+            "heading": "Say something meaningful",
+            "btn_label_1": "Learn more",
+            "btn_url_1": "/",
+            "image_position": "above"
+          }
+        },
+        { "type": "group",
+          "settings": {
+            "heading": "Second group example",
+            "body": "<p>Another item in the grid.</p>",
+            "image_position": "right"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -9,12 +9,98 @@
  */
 {
   "sections": {
-    "main": {
-      "type": "hello-world",
-      "settings": {}
+    "rich_text_myxM8F": {
+      "type": "rich-text",
+      "blocks": {
+        "group_kkHJrw": {
+          "type": "group",
+          "settings": {
+            "kicker": "",
+            "heading": "",
+            "heading_tag": "h2",
+            "body": "",
+            "btn_label_1": "",
+            "btn_url_1": "",
+            "btn_style_1": "primary",
+            "btn_label_2": "",
+            "btn_url_2": "",
+            "btn_style_2": "secondary",
+            "align": "center",
+            "inner_gap": 16,
+            "image": "shopify://shop_images/OU-Logo-Blue-Purple.png",
+            "image_alt": "",
+            "image_caption": "",
+            "image_loading": "lazy",
+            "image_position": "above",
+            "show_divider": false
+          }
+        },
+        "group_WYEXAX": {
+          "type": "group",
+          "settings": {
+            "kicker": "",
+            "heading": "Say something meaningful",
+            "heading_tag": "h2",
+            "body": "<p>Use this area to add longer text, links, and lists.</p>",
+            "btn_label_1": "",
+            "btn_url_1": "",
+            "btn_style_1": "primary",
+            "btn_label_2": "",
+            "btn_url_2": "",
+            "btn_style_2": "secondary",
+            "align": "center",
+            "inner_gap": 48,
+            "image_alt": "",
+            "image_caption": "",
+            "image_loading": "lazy",
+            "image_position": "none",
+            "show_divider": false
+          }
+        },
+        "group_Tn8RLr": {
+          "type": "group",
+          "settings": {
+            "kicker": "",
+            "heading": "Say something meaningful",
+            "heading_tag": "h2",
+            "body": "<p>Use this area to add longer text, links, and lists.</p>",
+            "btn_label_1": "",
+            "btn_url_1": "",
+            "btn_style_1": "primary",
+            "btn_label_2": "",
+            "btn_url_2": "",
+            "btn_style_2": "secondary",
+            "align": "center",
+            "inner_gap": 16,
+            "image_alt": "",
+            "image_caption": "",
+            "image_loading": "lazy",
+            "image_position": "none",
+            "show_divider": false
+          }
+        }
+      },
+      "block_order": [
+        "group_kkHJrw",
+        "group_WYEXAX",
+        "group_Tn8RLr"
+      ],
+      "name": "Rich text",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "max_width": 1520,
+        "text_align": "left",
+        "row_v_align": "center",
+        "columns_tablet": "1",
+        "columns_desktop": "2",
+        "group_gap": 28,
+        "block_gap": 16,
+        "pad_top": 120,
+        "pad_bottom": 100
+      }
     }
   },
   "order": [
-    "main"
+    "rich_text_myxM8F"
   ]
 }

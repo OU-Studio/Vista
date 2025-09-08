@@ -8,8 +8,8 @@ Relies on global tokens (header height, colors, radius, etc.)
 
 {% style %}
   /* Force the header’s Shopify section wrapper back to block layout */
-  #shopify-section-{{ section.id }}{
-    display:block !important;
+  #shopify-section-{{ section.id }} {
+    display: block !important;
     grid-template-columns: initial !important;
     grid-template-rows: initial !important;
     grid-auto-flow: initial !important;
@@ -17,15 +17,21 @@ Relies on global tokens (header height, colors, radius, etc.)
   }
 {% endstyle %}
 
+{%- capture header_classes -%}
+hdr
+color-scheme
+color-scheme-{{ section.settings.color_scheme | default: settings.default_color_scheme | default: 'scheme-1' }}
+{% if section.settings.layout_variant == 'sticky' %}hdr--sticky{% elsif section.settings.layout_variant == 'static' %}hdr--static{% else %}hdr--normal{% endif %}
+{% if section.settings.transparent_on_home and template.name == 'index' %}hdr--transparent{% endif %}
+hdr--{{ section.settings.layout_alignment }}
+{%- endcapture -%}
 
 <header
-  id="hdr-{{ section.id }}" class="hdr color-scheme color-scheme-{{ section.settings.color_scheme | default: settings.default_color_scheme | default: 'scheme-1' }}
-    {% if section.settings.layout_variant == 'sticky' %} hdr--sticky{% elsif section.settings.layout_variant == 'static' %} hdr--static{% else %} hdr--normal{% endif %}
-    {% if section.settings.transparent_on_home and template.name == 'index' %} hdr--transparent{% endif %}
-    hdr--{{ section.settings.layout_alignment }}"
-  role="banner"
+  id="hdr-{{ section.id }}"
+  class="{{ header_classes | strip | replace: '  ', ' ' }}"
   style="--hdr-height: {{ settings.header_height | default: 64 }}px;"
-  role="banner" >
+  role="banner">
+
   {% if section.settings.show_announcement and section.settings.announcement_text != blank %}
     <div class="hdr__announce" aria-live="polite" style="--announce-height: 32px;">
       <div class="container">
@@ -33,11 +39,12 @@ Relies on global tokens (header height, colors, radius, etc.)
       </div>
     </div>
   {% else %}
-    <style>:root{ --announce-height: 0px; }</style>
+    <style>:root { --announce-height: 0px; }</style>
   {% endif %}
 
   <div class="hdr__bar" style="--hdr-height: {{ settings.header_height | default: 64 }}px;">
     <div class="container hdr__grid">
+
       <!-- Mobile menu button -->
       <button class="hdr__menu-btn" aria-controls="mobile-nav" aria-expanded="false">
         {% render 'icon', name: 'menu' %}
@@ -47,13 +54,15 @@ Relies on global tokens (header height, colors, radius, etc.)
       <!-- Logo -->
       <a class="hdr__logo" href="{{ routes.root_url }}" aria-label="{{ shop.name }}">
         {% if section.settings.logo != blank %}
-        <img src="{{ section.settings.logo | img_url: '200x' }}"
-          srcset="{{ section.settings.logo | img_url: '200x' }} 1x, {{ section.settings.logo | img_url: '400x' }} 2x"
-          width="{{ section.settings.logo_width | default: 140 }}"
-          style="max-width: {{ section.settings.logo_width | default: 140 }}px"
-          alt="{{ section.settings.logo_alt | escape | default: shop.name }}" loading="eager" height="auto">
+          <img
+            src="{{ section.settings.logo | img_url: '200x' }}"
+            srcset="{{ section.settings.logo | img_url: '200x' }} 1x, {{ section.settings.logo | img_url: '400x' }} 2x"
+            width="{{ section.settings.logo_width | default: 140 }}"
+            style="max-width: {{ section.settings.logo_width | default: 140 }}px"
+            alt="{{ section.settings.logo_alt | escape | default: shop.name }}"
+            loading="eager">
         {% else %}
-        <span class="hdr__logo-text">{{ shop.name }}</span>
+          <span class="hdr__logo-text">{{ shop.name }}</span>
         {% endif %}
       </a>
 
@@ -61,37 +70,53 @@ Relies on global tokens (header height, colors, radius, etc.)
       <nav class="hdr__nav" aria-label="{{ 'layout.navigation.main' | t | default: 'Main menu' }}">
         <ul class="hdr__menu">
           {% for link in linklists[section.settings.menu].links %}
-          <li
-            class="hdr__item {% if link.links.size > 0 and settings.menu_style == 'mega' %}has-mega{% elsif link.links.size > 0 %}has-dropdown{% endif %}">
-            <a href="{{ link.url }}" class="hdr__link">{{ link.title }}</a>
+            <li class="hdr__item {% if link.links.size > 0 and settings.menu_style == 'mega' %}has-mega{% elsif link.links.size > 0 %}has-dropdown{% endif %}">
+              <a href="{{ link.url }}" class="hdr__link">{{ link.title }}</a>
 
-            {% if link.links.size > 0 %}
-            {% if settings.menu_style == 'mega' %}
-            <div class="mega">
-              <div class="mega__inner">
-                {% for child in link.links %}
-                <div class="mega__col">
-                  <a class="mega__heading" href="{{ child.url }}">{{ child.title }}</a>
-                  {% if child.links.size > 0 %}
-                  <ul class="mega__list">
-                    {% for grand in child.links %}
-                    <li><a href="{{ grand.url }}">{{ grand.title }}</a></li>
-                    {% endfor %}
-                  </ul>
-                  {% endif %}
-                </div>
-                {% endfor %}
-              </div>
-            </div>
-            {% else %}
-            <ul class="dropdown">
-              {% for child in link.links %}
-              <li><a href="{{ child.url }}">{{ child.title }}</a></li>
-              {% endfor %}
-            </ul>
-            {% endif %}
-            {% endif %}
-          </li>
+              {% if link.links.size > 0 %}
+                {% if settings.menu_style == 'mega' %}
+                  {%- assign cols = link.links.size -%}
+                  {%- if cols > 4 -%}{%- assign cols = 4 -%}{%- endif -%}
+                  <div class="mega" aria-hidden="true">
+                    <div class="dd" data-cols="{{ cols }}">
+                      {% for child in link.links %}
+                        <div class="dd__group">
+                          <a class="dd__heading" href="{{ child.url }}">{{ child.title }}</a>
+                          {% if child.links.size > 0 %}
+                            <ul class="dd__list">
+                              {% for grand in child.links %}
+                                <li><a class="dd__link" href="{{ grand.url }}">{{ grand.title }}</a></li>
+                              {% endfor %}
+                            </ul>
+                          {% endif %}
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="dropdown" aria-hidden="true">
+                    <div class="dd" data-cols="2">
+                      {% for child in link.links %}
+                        <div class="dd__group">
+                          <a class="dd__heading" href="{{ child.url }}">{{ child.title }}</a>
+                          {% if child.links.size > 0 %}
+                            <ul class="dd__list">
+                              {% for grand in child.links %}
+                                <li><a class="dd__link" href="{{ grand.url }}">{{ grand.title }}</a></li>
+                              {% endfor %}
+                            </ul>
+                          {% else %}
+                            <ul class="dd__list">
+                              <li><a class="dd__link" href="{{ child.url }}">{{ child.title }}</a></li>
+                            </ul>
+                          {% endif %}
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endif %}
+              {% endif %}
+            </li>
           {% endfor %}
         </ul>
       </nav>
@@ -99,30 +124,22 @@ Relies on global tokens (header height, colors, radius, etc.)
       <!-- Utilities -->
       <div class="hdr__utils">
         {% if section.settings.show_search %}
-        <a class="hdr__util" href="{{ routes.search_url }}"
-          aria-label="{{ 'general.accessibility.search' | t | default: 'Search' }}">
-          {% render 'icon', name: 'search' %}
-
-        </a>
+          <a class="hdr__util" href="{{ routes.search_url }}" aria-label="{{ 'general.accessibility.search' | t | default: 'Search' }}">
+            {% render 'icon', name: 'search' %}
+          </a>
         {% endif %}
 
         {% if shop.customer_accounts_enabled and section.settings.show_account %}
-        <a class="hdr__util" href="{{ routes.account_url }}"
-          aria-label="{{ 'general.accessibility.account' | t | default: 'Account' }}">
-          {% render 'icon', name: 'user' %}
-
-        </a>
+          <a class="hdr__util" href="{{ routes.account_url }}" aria-label="{{ 'general.accessibility.account' | t | default: 'Account' }}">
+            {% render 'icon', name: 'user' %}
+          </a>
         {% endif %}
 
         {% if section.settings.show_cart %}
-        <a class="hdr__util hdr__cart" href="{{ routes.cart_url }}"
-          aria-label="{{ 'general.accessibility.cart' | t | default: 'Cart' }}" data-cart-open>
-          {% render 'icon', name: 'cart' %}
-
-          <span class="hdr__cart-count" data-cart-count>
-            {{ cart.item_count }}
-          </span>
-        </a>
+          <a class="hdr__util hdr__cart" href="{{ routes.cart_url }}" aria-label="{{ 'general.accessibility.cart' | t | default: 'Cart' }}" data-cart-open>
+            {% render 'icon', name: 'cart' %}
+            <span class="hdr__cart-count" data-cart-count>{{ cart.item_count }}</span>
+          </a>
         {% endif %}
       </div>
     </div>
@@ -139,19 +156,17 @@ Relies on global tokens (header height, colors, radius, etc.)
     <nav class="mnav__body" aria-label="{{ 'layout.navigation.main' | t | default: 'Main menu' }}">
       <ul class="mnav__menu">
         {% for link in linklists[section.settings.menu].links %}
-        <li class="mnav__item">
-          <a href="{{ link.url }}" class="mnav__link">{{ link.title }}</a>
-
-          {% if link.links.size > 0 %}
-          <button class="mnav__toggle" aria-expanded="false">{% render 'icon', name: 'chevron-down' %}</button>
-          <ul class="mnav__submenu" hidden>
-            {% for child in link.links %}
-            <li><a href="{{ child.url }}">{{ child.title }}</a></li>
-            {% endfor %}
-          </ul>
-          {% endif %}
-        </li>
-
+          <li class="mnav__item">
+            <a href="{{ link.url }}" class="mnav__link">{{ link.title }}</a>
+            {% if link.links.size > 0 %}
+              <button class="mnav__toggle" aria-expanded="false">{% render 'icon', name: 'chevron-down' %}</button>
+              <ul class="mnav__submenu" hidden>
+                {% for child in link.links %}
+                  <li><a href="{{ child.url }}">{{ child.title }}</a></li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </li>
         {% endfor %}
       </ul>
     </nav>
@@ -160,47 +175,39 @@ Relies on global tokens (header height, colors, radius, etc.)
 
 {% schema %}
 {
-"name": "Header",
-"settings": [
-{ "type": "image_picker", "id": "logo", "label": "Logo" },
-{ "type": "text", "id": "logo_alt", "label": "Logo alt text" },
-{ "type": "range", "id": "logo_width", "label": "Logo width", "min": 60, "max": 260, "step": 4, "unit": "px", "default":
-140 },
+  "name": "Header",
+  "settings": [
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    { "type": "text", "id": "logo_alt", "label": "Logo alt text" },
+    { "type": "range", "id": "logo_width", "label": "Logo width", "min": 60, "max": 260, "step": 4, "unit": "px", "default": 140 },
+    { "type": "link_list", "id": "menu", "label": "Main menu", "default": "main-menu" },
 
-{ "type": "link_list", "id": "menu", "label": "Main menu", "default": "main-menu" },
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "header_height", "label": "Header height", "min": 48, "max": 92, "step": 2, "unit": "px", "default": 64 },
+    { "type": "select", "id": "layout_variant", "label": "Header behavior", "options": [
+      { "value": "normal", "label": "Normal" },
+      { "value": "sticky", "label": "Sticky" }
+    ], "default": "normal" },
+    { "type": "checkbox", "id": "transparent_on_home", "label": "Transparent on homepage", "default": false },
+    { "type": "select", "id": "layout_alignment", "label": "Layout alignment", "options": [
+      { "value": "logo_center_nav_left", "label": "Logo center, nav left (default)" },
+      { "value": "logo_left_nav_center", "label": "Logo left, nav center" },
+      { "value": "logo_left_nav_left",   "label": "Logo left, nav left" }
+    ], "default": "logo_center_nav_left" },
 
-{ "type": "header", "content": "Layout" },
-{ "type": "range", "id": "header_height", "label": "Header height", "min": 48, "max": 92, "step": 2, "unit": "px", "default": 64 },
-{ "type": "select", "id": "layout_variant", "label": "Header behavior", "options": [
-{ "value": "normal", "label": "Normal" },
-{ "value": "sticky", "label": "Sticky" },
-], "default": "normal" },
-{ "type": "checkbox", "id": "transparent_on_home", "label": "Transparent on homepage", "default": false },
-{ "type": "select", "id": "layout_alignment", "label": "Layout alignment", "options": [
-  { "value": "logo_center_nav_left", "label": "Logo center, nav left (default)" },
-  { "value": "logo_left_nav_center", "label": "Logo left, nav center" },
-  { "value": "logo_left_nav_left",   "label": "Logo left, nav left" }
-], "default": "logo_center_nav_left" },
+    { "type": "header", "content": "Utilities" },
+    { "type": "checkbox", "id": "show_search", "label": "Show search", "default": true },
+    { "type": "checkbox", "id": "show_account", "label": "Show account", "default": true },
+    { "type": "checkbox", "id": "show_cart", "label": "Show cart", "default": true },
 
+    { "type": "header", "content": "Announcement" },
+    { "type": "checkbox", "id": "show_announcement", "label": "Show announcement bar", "default": false },
+    { "type": "text", "id": "announcement_text", "label": "Announcement text", "default": "Welcome to our store!" },
 
-{ "type": "header", "content": "Utilities" },
-{ "type": "checkbox", "id": "show_search", "label": "Show search", "default": true },
-{ "type": "checkbox", "id": "show_account", "label": "Show account", "default": true },
-{ "type": "checkbox", "id": "show_cart", "label": "Show cart", "default": true },
-
-{ "type": "header", "content": "Announcement" },
-{ "type": "checkbox", "id": "show_announcement", "label": "Show announcement bar", "default": false },
-{ "type": "text", "id": "announcement_text", "label": "Announcement text", "default": "Welcome to our store!" },
-
-{
-      "type": "color_scheme",
-      "id": "color_scheme",
-      "label": "Colour Scheme",
-      "default": "scheme-1"
-    }
-],
-"blocks": [],
-"presets": [{ "name": "Header" }]
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour Scheme", "default": "scheme-1" }
+  ],
+  "blocks": [],
+  "presets": [{ "name": "Header" }]
 }
 {% endschema %}
 
@@ -210,55 +217,51 @@ Relies on global tokens (header height, colors, radius, etc.)
   </script>
 {% endif %}
 
-
-
-
 <script>
 (() => {
-const menuBtn = document.querySelector('.hdr__menu-btn');
-const drawer = document.getElementById('mobile-nav');
-const closeBtn = drawer ? drawer.querySelector('.mnav__close') : null;
+  const menuBtn = document.querySelector('.hdr__menu-btn');
+  const drawer = document.getElementById('mobile-nav');
+  const closeBtn = drawer ? drawer.querySelector('.mnav__close') : null;
 
-if (menuBtn && drawer){
-menuBtn.addEventListener('click', () => {
-const expanded = menuBtn.getAttribute('aria-expanded') === 'true';
-menuBtn.setAttribute('aria-expanded', (!expanded).toString());
-drawer.hidden = expanded;
-if (!expanded) drawer.querySelector('.mnav__link')?.focus();
-});
-}
-if (closeBtn && drawer){
-closeBtn.addEventListener('click', () => {
-drawer.hidden = true;
-menuBtn?.setAttribute('aria-expanded', 'false');
-menuBtn?.focus();
-});
-}
+  if (menuBtn && drawer) {
+    menuBtn.addEventListener('click', () => {
+      const expanded = menuBtn.getAttribute('aria-expanded') === 'true';
+      menuBtn.setAttribute('aria-expanded', (!expanded).toString());
+      drawer.hidden = expanded;
+      if (!expanded) drawer.querySelector('.mnav__link')?.focus();
+    });
+  }
 
-// Mobile submenu toggles
-drawer?.querySelectorAll('.mnav__toggle').forEach(btn => {
-btn.addEventListener('click', () => {
-const expanded = btn.getAttribute('aria-expanded') === 'true';
-const submenu = btn.parentElement?.querySelector('.mnav__submenu');
-btn.setAttribute('aria-expanded', (!expanded).toString());
-if (submenu) submenu.hidden = expanded;
-});
-});
+  if (closeBtn && drawer) {
+    closeBtn.addEventListener('click', () => {
+      drawer.hidden = true;
+      menuBtn?.setAttribute('aria-expanded', 'false');
+      menuBtn?.focus();
+    });
+  }
 
-const root = document.documentElement;
+  // Mobile submenu toggles
+  drawer?.querySelectorAll('.mnav__toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      const submenu = btn.parentElement?.querySelector('.mnav__submenu');
+      btn.setAttribute('aria-expanded', (!expanded).toString());
+      if (submenu) submenu.hidden = expanded;
+    });
+  });
+
+  const root = document.documentElement;
   const hdr = document.getElementById('hdr-{{ section.id }}');
   if (!hdr) return;
 
   const announce = hdr.querySelector('.hdr__announce');
 
-  function updateAnnounceHeight(){
-    // Visible? use its offsetHeight; else 0
+  function updateAnnounceHeight() {
     const h = announce && getComputedStyle(announce).display !== 'none' ? announce.offsetHeight : 0;
     root.style.setProperty('--announce-height', h + 'px');
     document.body.classList.toggle('has-announcement', h > 0);
   }
 
-  // Initial + responsive + Theme Editor events
   updateAnnounceHeight();
   window.addEventListener('resize', updateAnnounceHeight);
 
@@ -267,6 +270,4 @@ const root = document.documentElement;
   document.addEventListener('shopify:section:select', updateAnnounceHeight);
   document.addEventListener('shopify:section:deselect', updateAnnounceHeight);
 })();
-
-
 </script>

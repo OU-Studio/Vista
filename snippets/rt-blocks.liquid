@@ -1,0 +1,97 @@
+{%- comment -%}
+Snippet: rt-blocks.liquid
+Purpose: Render a single RT block. Expects `block` to be passed in:
+  {% render 'rt-blocks', block: block %}
+
+Supported block types:
+- heading (settings: text, tag)
+- text (settings: richtext)
+- button (settings: label, url, style)
+- image (settings: image, alt, caption, loading)
+- divider ()
+- spacer (settings: size)
+- two_columns (settings: columns, col1, col2, col3)
+
+Classes are lightweight (rt__*) so you can style in your section CSS.
+{%- endcomment -%}
+
+{%- assign b = block -%}
+{%- case b.type -%}
+
+  {%- when 'heading' -%}
+    {%- assign tag = b.settings.tag | default: 'h2' -%}
+    <{{ tag }} class="rt__heading" {{ b.shopify_attributes }}>
+      {{ b.settings.text | escape }}
+    </{{ tag }}>
+
+  {%- when 'kicker' -%}
+    {%- assign tag = b.settings.tag | default: 'h2' -%}
+    <{{ tag }} class="rt__heading" {{ b.shopify_attributes }}>
+      {{ b.settings.text | escape }}
+    </{{ tag }}>
+
+  {%- when 'text' -%}
+    <div class="rt__text" {{ b.shopify_attributes }}>
+      {{ b.settings.richtext }}
+    </div>
+
+  {%- when 'button' -%}
+    {%- assign label = b.settings.label | default: 'Learn more' -%}
+    {%- assign url = b.settings.url | default: routes.root_url -%}
+    <div class="rt__button-wrap" {{ b.shopify_attributes }}>
+      {%- comment -%} Try theme button snippet if it exists; otherwise plain <a> {%- endcomment -%}
+      {%- capture _try_button -%}{% render 'button', label: label, url: url, style: b.settings.style %}{%- endcapture -%}
+      {%- if _try_button contains '<' -%}
+        {{ _try_button }}
+      {%- else -%}
+        <a href="{{ url }}" class="button button--{{ b.settings.style | default: 'primary' }}">{{ label }}</a>
+      {%- endif -%}
+    </div>
+
+  {%- when 'image' -%}
+    {%- if b.settings.image != blank -%}
+      {%- assign img = b.settings.image -%}
+      <figure class="rt__image" {{ b.shopify_attributes }}>
+        <img
+          src="{{ img | image_url: width: 1500 }}"
+          srcset="
+            {{ img | image_url: width: 375 }} 375w,
+            {{ img | image_url: width: 550 }} 550w,
+            {{ img | image_url: width: 750 }} 750w,
+            {{ img | image_url: width: 1100 }} 1100w,
+            {{ img | image_url: width: 1500 }} 1500w
+          "
+          sizes="(min-width: 750px) 750px, 92vw"
+          alt="{{ b.settings.alt | default: img.alt | escape }}"
+          loading="{{ b.settings.loading | default: 'lazy' }}"
+          width="{{ img.width }}"
+          height="{{ img.height }}">
+        {%- if b.settings.caption != blank -%}
+          <figcaption>{{ b.settings.caption }}</figcaption>
+        {%- endif -%}
+      </figure>
+    {%- endif -%}
+
+  {%- when 'divider' -%}
+    <div class="rt__divider" aria-hidden="true" {{ b.shopify_attributes }}></div>
+
+  {%- when 'spacer' -%}
+    <div class="rt__spacer" style="--spacer: {{ b.settings.size | default: 24 }}px" aria-hidden="true" {{ b.shopify_attributes }}></div>
+
+  {%- when 'two_columns' -%}
+    {%- assign cols = b.settings.columns | default: 2 -%}
+    <div class="rt__cols rt__cols--{{ cols }}" {{ b.shopify_attributes }}>
+      <div class="rt__col">
+        {{ b.settings.col1 }}
+      </div>
+      <div class="rt__col">
+        {{ b.settings.col2 }}
+      </div>
+      {%- if cols == 3 -%}
+        <div class="rt__col">
+          {{ b.settings.col3 }}
+        </div>
+      {%- endif -%}
+    </div>
+
+{%- endcase -%}
