@@ -1,0 +1,235 @@
+{% comment %}
+Hero (Vista)
+- Background: image / video / solid color
+- Blocks: kicker, heading, text, buttons (multiple)
+- Align: horizontal (left/center/right), vertical (top/center/bottom)
+- Options: overlay (scrim), height, content max width
+{% endcomment %}
+
+<section class="hero-vista color-scheme color-scheme-{{ section.settings.color_scheme }}"
+  style="
+    {% if section.settings.bg_mode == 'color' and section.settings.bg_color != blank %}--hero-bg: {{ section.settings.bg_color }};{% endif %}
+    --hero-overlay: {{ section.settings.overlay_opacity | default: 30 | divided_by: 100.0 }};
+    --hero-minh: {% case section.settings.height %}
+      {% when 'xs' %} 320px
+      {% when 'sm' %} 420px
+      {% when 'md' %} 540px
+      {% when 'lg' %} 680px
+      {% when 'full' %} 100dvh
+      {% else %} 540px
+    {% endcase %};
+    --hero-content-max: {{ section.settings.content_max | default: 760 }}px;
+  ">
+  <div class="hero-vista__media"
+       data-mode="{{ section.settings.bg_mode }}"
+       {% if section.settings.bg_image %} style="--hero-image:url('{{ section.settings.bg_image | image_url: width: 2600 }}');"{% endif %}>
+    {% if section.settings.bg_mode == 'video' %}
+      {% if section.settings.hosted_video %}
+        {{ section.settings.hosted_video
+            | video_tag:
+              autoplay: true,
+              loop: true,
+              muted: true,
+              playsinline: true,
+              controls: false,
+              poster: section.settings.bg_image }}
+      {% elsif section.settings.video_url != blank %}
+        <video class="hero-vista__video" autoplay muted loop playsinline
+               {% if section.settings.bg_image %}poster="{{ section.settings.bg_image | image_url: width: 1800 }}"{% endif %}>
+          <source src="{{ section.settings.video_url | escape }}" type="video/mp4">
+        </video>
+      {% endif %}
+    {% endif %}
+    <span class="hero-vista__scrim" aria-hidden="true"></span>
+  </div>
+
+  <div class="hero-vista__inner"
+     style="
+       /* vertical alignment */
+       align-items: {% case section.settings.valign %}{% when 'top' %}start{% when 'bottom' %}end{% else %}center{% endcase %};
+       /* horizontal alignment */
+       justify-items: {% case section.settings.halign %}{% when 'left' %}start{% when 'right' %}end{% else %}center{% endcase %};
+       /* text alignment */
+       text-align: {% case section.settings.halign %}{% when 'left' %}left{% when 'right' %}right{% else %}center{% endcase %};
+     ">
+    <div class="hero-vista__content" style="max-width: var(--hero-content-max);">
+      {% for block in section.blocks %}
+        {% case block.type %}
+
+          {% when 'kicker' %}
+            {% if block.settings.text != blank %}
+              <div class="hero-vista__kicker" {{ block.shopify_attributes }}>
+                {{ block.settings.text | escape }}
+              </div>
+            {% endif %}
+
+          {% when 'heading' %}
+            {% if block.settings.text != blank %}
+              {% assign tag = block.settings.tag | default: 'h1' %}
+              <{{ tag }} class="hero-vista__title" {{ block.shopify_attributes }}>
+                {{ block.settings.text }}
+              </{{ tag }}>
+            {% endif %}
+
+          {% when 'text' %}
+            {% if block.settings.text != blank %}
+              <div class="hero-vista__text rte" {{ block.shopify_attributes }}>
+                {{ block.settings.text }}
+              </div>
+            {% endif %}
+
+          {% when 'button' %}
+            {% assign style = block.settings.style | default: 'primary' %}
+            {% if block.settings.label != blank and block.settings.link != blank %}
+              <a href="{{ block.settings.link }}" class="button {% if style == 'secondary' %}button--secondary{% else %}button--primary{% endif %}" {{ block.shopify_attributes }}>
+                {{ block.settings.label | escape }}
+              </a>
+            {% endif %}
+
+        {% endcase %}
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if section.settings.show_scroll_hint %}
+    <button class="hero-vista__scroll" type="button" aria-label="Scroll" onclick="window.scrollTo({ top: window.innerHeight - 40, behavior: 'smooth' })">▼</button>
+  {% endif %}
+</section>
+
+<style>
+.hero-vista{
+  position: relative;
+  min-height: var(--hero-minh, 540px);
+  display: grid;
+  overflow: clip;
+  isolation: isolate;
+  background: var(--hero-bg, transparent);
+}
+.hero-vista__media{
+  position: absolute; inset: 0; z-index: -2;
+  background: var(--hero-bg, transparent);
+}
+.hero-vista__media[data-mode="image"]{
+  background-image: var(--hero-image);
+  background-size: cover;
+  background-position: center;
+}
+.hero-vista__media .shopify-video, .hero-vista__video{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+}
+.hero-vista__scrim{
+  position:absolute; inset:0; background: rgb(0 0 0 / var(--hero-overlay, .3)); z-index:-1;
+}
+.hero-vista__inner{
+  min-height: inherit;
+  display: grid;
+  padding: clamp(24px, 6vw, 56px);
+}
+.hero-vista__content{
+  display: grid; gap: 12px;
+}
+.hero-vista__kicker{
+  font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; opacity:.85;
+}
+.hero-vista__title{
+  margin: 0;
+  font-size: clamp(28px, 6vw, 56px);
+  line-height: 1.1;
+}
+.hero-vista__text{
+  font-size: clamp(1rem, 2.4vw, 1.125rem);
+  opacity:.95;
+}
+.hero-vista .button{ margin-top: 6px; }
+.hero-vista__scroll{
+  position:absolute; left:50%; bottom:10px; transform:translateX(-50%);
+  border:0; background:transparent; color:inherit; opacity:.7; cursor:pointer;
+  font-size: 20px; line-height:1; padding:6px 10px; border-radius: 999px;
+}
+.hero-vista__scroll:hover{ opacity:1; background: rgb(0 0 0 / .06); }
+</style>
+
+{% schema %}
+{
+  "name": "Hero (Vista)",
+  "tag": "section",
+  "class": "section--hero-vista",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Background" },
+    { "type": "select", "id": "bg_mode", "label": "Background mode", "default": "image",
+      "options": [
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video" },
+        { "value": "color", "label": "Solid colour" }
+      ]
+    },
+    { "type": "image_picker", "id": "bg_image", "label": "Background image" },
+    { "type": "video", "id": "hosted_video", "label": "Hosted video (Shopify files)" },
+    { "type": "url", "id": "video_url", "label": "External MP4 URL (fallback)" },
+    { "type": "color", "id": "bg_color", "label": "Background colour" },
+    { "type": "range", "id": "overlay_opacity", "label": "Overlay (scrim) opacity", "min": 0, "max": 100, "step": 5, "default": 30 },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "select", "id": "height", "label": "Height", "default": "md",
+      "options": [
+        { "value": "xs", "label": "Extra small" },
+        { "value": "sm", "label": "Small" },
+        { "value": "md", "label": "Medium" },
+        { "value": "lg", "label": "Large" },
+        { "value": "full", "label": "Full viewport" }
+      ]
+    },
+    { "type": "range", "id": "content_max", "label": "Max content width", "min": 420, "max": 1200, "step": 20, "unit": "px", "default": 760 },
+    { "type": "select", "id": "halign", "label": "Horizontal alignment", "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    { "type": "select", "id": "valign", "label": "Vertical alignment", "default": "center",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ]
+    },
+    { "type": "checkbox", "id": "show_scroll_hint", "label": "Show scroll hint", "default": false }
+  ],
+  "blocks": [
+    { "type": "kicker", "name": "Kicker", "limit": 1,
+      "settings": [{ "type": "text", "id": "text", "label": "Text" }]
+    },
+    { "type": "heading", "name": "Heading", "limit": 1,
+      "settings": [
+        { "type": "select", "id": "tag", "label": "Heading tag", "default": "h1",
+          "options": [
+            { "value": "h1", "label": "H1" }, { "value": "h2", "label": "H2" }, { "value": "h3", "label": "H3" }
+          ]
+        },
+        { "type": "richtext", "id": "text", "label": "Heading text" }
+      ]
+    },
+    { "type": "text", "name": "Text", "limit": 1,
+      "settings": [{ "type": "richtext", "id": "text", "label": "Body text" }]
+    },
+    { "type": "button", "name": "Button",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label" },
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "select", "id": "style", "label": "Style", "default": "primary",
+          "options": [
+            { "value": "primary", "label": "Primary" },
+            { "value": "secondary", "label": "Secondary" }
+          ]
+        }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Hero (Vista)", "blocks": [ { "type": "kicker" }, { "type": "heading" }, { "type": "text" }, { "type": "button" } ] }
+  ]
+}
+{% endschema %}

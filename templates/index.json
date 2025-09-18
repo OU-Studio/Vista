@@ -9,14 +9,80 @@
  */
 {
   "sections": {
-    "product_collection_t6eERV": {
-      "type": "product-collection",
-      "name": "Product collection grid",
+    "rich_text_pzQL8q": {
+      "type": "rich-text",
+      "blocks": {
+        "group_HHRExG": {
+          "type": "group",
+          "settings": {
+            "kicker": "kicker",
+            "heading": "Say something meaningful",
+            "heading_tag": "h2",
+            "body": "<p>Use this area to add longer text, links, and lists.</p>",
+            "btn_label_1": "Learn more",
+            "btn_url_1": "/",
+            "btn_style_1": "primary",
+            "btn_label_2": "",
+            "btn_url_2": "",
+            "btn_style_2": "secondary",
+            "align": "center",
+            "inner_gap": 16,
+            "image_alt": "",
+            "image_caption": "",
+            "image_loading": "lazy",
+            "image_position": "above",
+            "show_divider": false
+          }
+        },
+        "group_bThj88": {
+          "type": "group",
+          "settings": {
+            "kicker": "",
+            "heading": "Second group example",
+            "heading_tag": "h2",
+            "body": "<p>Another item in the grid.</p>",
+            "btn_label_1": "",
+            "btn_url_1": "",
+            "btn_style_1": "primary",
+            "btn_label_2": "",
+            "btn_url_2": "",
+            "btn_style_2": "secondary",
+            "align": "center",
+            "inner_gap": 16,
+            "image_alt": "",
+            "image_caption": "",
+            "image_loading": "lazy",
+            "image_position": "right",
+            "show_divider": false
+          }
+        }
+      },
+      "block_order": [
+        "group_HHRExG",
+        "group_bThj88"
+      ],
+      "name": "Rich text (Groups)",
       "settings": {
         "color_scheme": "",
         "max_width": 1200,
-        "kicker": "kick",
-        "title": "title",
+        "text_align": "center",
+        "row_v_align": "stretch",
+        "columns_tablet": "1",
+        "columns_desktop": "2",
+        "group_gap": 28,
+        "block_gap": 16,
+        "pad_top": 40,
+        "pad_bottom": 40
+      }
+    },
+    "product_collection_D8RTXj": {
+      "type": "product-collection",
+      "name": "Single Collection",
+      "settings": {
+        "color_scheme": "",
+        "max_width": 1200,
+        "kicker": "",
+        "title": "",
         "title_tag": "h2",
         "head_align": "center",
         "head_gap": 12,
@@ -25,122 +91,32 @@
         "limit": 12,
         "cols_mobile": "2",
         "cols_desktop": "3",
-        "grid_gap": 28,
+        "grid_gap": 24,
         "card_gap": 10,
         "row_align": "center",
         "row_valign": "stretch",
         "show_product_title": true,
-        "title_position": "below",
-        "text_style": "body",
-        "title_ab_align": "left",
+        "title_position": "overlay",
+        "text_style": "h4",
+        "title_ab_align": "center",
         "quick_enable": true,
         "quick_label": "Add to cart",
         "quick_style": "secondary",
         "quick_added_text": "Added!",
         "quick_soldout_text": "Sold out",
         "overlay_pad": 16,
-        "overlay_h": "right",
+        "overlay_h": "center",
         "overlay_v": "center",
         "overlay_opacity": 0.3,
         "overlay_text_color": "#ffffff",
-        "aspect_ratio": "1 / 1",
-        "pad_top": 68,
+        "aspect_ratio": "16 / 9",
+        "pad_top": 40,
         "pad_bottom": 40
       }
     },
-    "rich_text_myxM8F": {
-      "type": "rich-text",
-      "blocks": {
-        "group_kkHJrw": {
-          "type": "group",
-          "settings": {
-            "kicker": "",
-            "heading": "",
-            "heading_tag": "h2",
-            "body": "",
-            "btn_label_1": "",
-            "btn_url_1": "",
-            "btn_style_1": "primary",
-            "btn_label_2": "",
-            "btn_url_2": "",
-            "btn_style_2": "secondary",
-            "align": "center",
-            "inner_gap": 16,
-            "image": "shopify://shop_images/OU-Logo-Blue-Purple.png",
-            "image_alt": "",
-            "image_caption": "",
-            "image_loading": "lazy",
-            "image_position": "above",
-            "show_divider": false
-          }
-        },
-        "group_WYEXAX": {
-          "type": "group",
-          "settings": {
-            "kicker": "",
-            "heading": "Say something meaningful",
-            "heading_tag": "h2",
-            "body": "<p>Use this area to add longer text, links, and lists.</p>",
-            "btn_label_1": "",
-            "btn_url_1": "",
-            "btn_style_1": "primary",
-            "btn_label_2": "",
-            "btn_url_2": "",
-            "btn_style_2": "secondary",
-            "align": "center",
-            "inner_gap": 48,
-            "image_alt": "",
-            "image_caption": "",
-            "image_loading": "lazy",
-            "image_position": "none",
-            "show_divider": false
-          }
-        },
-        "group_Tn8RLr": {
-          "type": "group",
-          "settings": {
-            "kicker": "",
-            "heading": "Say something meaningful",
-            "heading_tag": "h2",
-            "body": "<p>Use this area to add longer text, links, and lists.</p>",
-            "btn_label_1": "",
-            "btn_url_1": "",
-            "btn_style_1": "primary",
-            "btn_label_2": "",
-            "btn_url_2": "",
-            "btn_style_2": "secondary",
-            "align": "center",
-            "inner_gap": 16,
-            "image_alt": "",
-            "image_caption": "",
-            "image_loading": "lazy",
-            "image_position": "none",
-            "show_divider": false
-          }
-        }
-      },
-      "block_order": [
-        "group_kkHJrw",
-        "group_WYEXAX",
-        "group_Tn8RLr"
-      ],
-      "name": "Rich text",
-      "settings": {
-        "color_scheme": "scheme-1",
-        "max_width": 1520,
-        "text_align": "left",
-        "row_v_align": "center",
-        "columns_tablet": "1",
-        "columns_desktop": "2",
-        "group_gap": 28,
-        "block_gap": 16,
-        "pad_top": 120,
-        "pad_bottom": 100
-      }
-    },
-    "collection_YtYTTU": {
-      "type": "collection",
-      "name": "All collections grid",
+    "collection_products_grid_76ncKH": {
+      "type": "collection-products-grid",
+      "name": "Collection List",
       "settings": {
         "color_scheme": "",
         "max_width": 1200,
@@ -166,17 +142,71 @@
         "overlay_text_color": "#ffffff",
         "aspect_ratio": "16 / 9",
         "fallback_first_product": true,
-        "skip_frontpage": true,
+        "skip_frontpage": false,
         "show_empty": false,
         "limit": 20,
         "pad_top": 40,
         "pad_bottom": 40
       }
+    },
+    "hero_Agz8nb": {
+      "type": "hero",
+      "blocks": {
+        "kicker_TTJA8B": {
+          "type": "kicker",
+          "settings": {
+            "text": "Kicker"
+          }
+        },
+        "heading_Niz7if": {
+          "type": "heading",
+          "settings": {
+            "tag": "h1",
+            "text": "<p>Heading</p>"
+          }
+        },
+        "text_ThhBDz": {
+          "type": "text",
+          "settings": {
+            "text": "<p>test</p>"
+          }
+        },
+        "button_GEYUdy": {
+          "type": "button",
+          "settings": {
+            "label": "button",
+            "link": "/",
+            "style": "primary"
+          }
+        }
+      },
+      "block_order": [
+        "kicker_TTJA8B",
+        "heading_Niz7if",
+        "text_ThhBDz",
+        "button_GEYUdy"
+      ],
+      "name": "Hero (Vista)",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "bg_mode": "video",
+        "bg_image": "shopify://shop_images/OU-Logo-Blue-Purple.png",
+        "hosted_video": "shopify://files/videos/bespoke_contour_boxes (1080p).mp4",
+        "video_url": "",
+        "bg_color": "#1f6feb",
+        "overlay_opacity": 40,
+        "height": "sm",
+        "content_max": 920,
+        "halign": "left",
+        "valign": "top",
+        "show_scroll_hint": false
+      }
     }
   },
   "order": [
-    "product_collection_t6eERV",
-    "rich_text_myxM8F",
-    "collection_YtYTTU"
+    "rich_text_pzQL8q",
+    "product_collection_D8RTXj",
+    "collection_products_grid_76ncKH",
+    "hero_Agz8nb"
   ]
 }

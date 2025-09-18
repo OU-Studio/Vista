@@ -1,0 +1,152 @@
+{% comment %}
+USP / Icon Grid (Vista)
+- 3–6 icon tiles with title + small text
+- Options: columns, align, card style, per-item link
+{% endcomment %}
+
+<section class="usp-grid color-scheme color-scheme-{{ section.settings.color_scheme }}">
+  <div class="usp__wrap" style="max-width: {{ section.settings.max_width | default: 1200 }}px">
+
+    {% if section.settings.kicker != blank or section.settings.title != blank %}
+      <header class="usp__head" style="text-align: {{ section.settings.head_align }}">
+        {% if section.settings.kicker != blank %}
+          <div class="usp__kicker">{{ section.settings.kicker | escape }}</div>
+        {% endif %}
+        {% if section.settings.title != blank %}
+          {% assign h = section.settings.title_tag | default: 'h2' %}
+          <{{ h }} class="usp__title">{{ section.settings.title | escape }}</{{ h }}>
+        {% endif %}
+      </header>
+    {% endif %}
+
+    <div
+      class="usp__grid {% if section.settings.card_style != 'plain' %}is-card{% endif %}"
+      data-cols-m="{{ section.settings.cols_mobile }}"
+      data-cols-d="{{ section.settings.cols_desktop }}"
+      style="--gap: {{ section.settings.grid_gap | default: 20 }}px"
+    >
+      {% for block in section.blocks %}
+        {% if block.type == 'item' %}
+          {% assign link_start = '' %}
+          {% assign link_end = '' %}
+          {% if block.settings.link != blank %}
+            {% assign link_start = '<a class="usp__item-link" href="' | append: block.settings.link | append: '">' %}
+            {% assign link_end = '</a>' %}
+          {% endif %}
+
+          <article class="usp__item" {{ block.shopify_attributes }}>
+            {{ link_start }}
+              <div class="usp__icon" style="--size: {{ section.settings.icon_size | default: 36 }}px;">
+                {% if block.settings.icon_image %}
+                  {{ block.settings.icon_image | image_url: width: 120 | image_tag: loading: 'lazy', alt: block.settings.title | escape }}
+                {% elsif block.settings.icon_svg != blank %}
+                  <span class="usp__svg" aria-hidden="true">{{ block.settings.icon_svg }}</span>
+                {% elsif block.settings.emoji != blank %}
+                  <span class="usp__emoji" aria-hidden="true">{{ block.settings.emoji }}</span>
+                {% else %}
+                  <span class="usp__placeholder" aria-hidden="true"></span>
+                {% endif %}
+              </div>
+
+              {% if block.settings.title != blank %}
+                <h3 class="usp__item-title">{{ block.settings.title | escape }}</h3>
+              {% endif %}
+              {% if block.settings.text != blank %}
+                <div class="usp__item-text">{{ block.settings.text }}</div>
+              {% endif %}
+            {{ link_end }}
+          </article>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+<style>
+.usp-grid{ padding: clamp(28px, 6vw, 60px) 16px; }
+.usp__wrap{ margin: 0 auto; }
+.usp__head{ display:grid; gap:.5rem; margin-bottom: clamp(12px, 3vw, 20px); }
+.usp__kicker{ font-size:.85rem; letter-spacing:.08em; text-transform:uppercase; opacity:.8; }
+.usp__title{ margin:0; }
+
+.usp__grid{
+  display:grid; gap: var(--gap);
+  grid-template-columns: repeat(2, minmax(0,1fr));
+}
+@media (min-width:750px){
+  .usp__grid{ grid-template-columns: repeat(attr(data-cols-m number, 3), minmax(0,1fr)); }
+}
+@media (min-width:990px){
+  .usp__grid{ grid-template-columns: repeat(attr(data-cols-d number, 4), minmax(0,1fr)); }
+}
+
+/* Cards */
+.usp__item{
+  display:grid; gap:.5rem;
+  padding: {% if section.settings.card_style == 'card' %}16px{% else %}0{% endif %};
+  border-radius: {% if section.settings.card_style == 'card' %}12px{% else %}0{% endif %};
+  border: {% if section.settings.card_style == 'card' %}1px solid var(--color-border, rgba(0,0,0,.12)){% else %}0{% endif %};
+  background: {% if section.settings.card_style == 'card' %}var(--color-surface, #fff){% else %}transparent{% endif %};
+}
+.usp__item-link{ text-decoration:none; color:inherit; display:grid; gap:.5rem; }
+
+/* Icons */
+.usp__icon{
+  width: var(--size, 36px); height: var(--size, 36px);
+  display:grid; place-items:center;
+}
+.usp__emoji{ font-size: calc(var(--size) * .8); line-height:1; }
+.usp__svg :where(svg){ width:100%; height:100%; display:block; }
+.usp__placeholder{ width:100%; height:100%; background: rgba(0,0,0,.06); border-radius: 8px; }
+
+/* Copy */
+.usp__item-title{ margin:0; font-size:1rem; font-weight:600; }
+.usp__item-text{ color: var(--color-muted, #666); font-size:.95rem; }
+</style>
+
+{% schema %}
+{
+  "name": "USP / Icon Grid",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" },
+    { "type": "text", "id": "kicker", "label": "Kicker" },
+    { "type": "text", "id": "title", "label": "Title" },
+    { "type": "select", "id": "title_tag", "label": "Title tag", "default": "h2",
+      "options": [{"value":"h1","label":"H1"},{"value":"h2","label":"H2"},{"value":"h3","label":"H3"}]
+    },
+    { "type": "select", "id": "head_align", "label": "Header alignment", "default": "center",
+      "options": [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}]
+    },
+    { "type": "range", "id": "max_width", "label": "Max width", "min": 600, "max": 1600, "step": 20, "unit": "px", "default": 1200 },
+
+    { "type": "header", "content": "Grid" },
+    { "type": "select", "id": "cols_mobile", "label": "Columns (tablet ≥750px)", "default": "3",
+      "options": [{"value":"2","label":"2"},{"value":"3","label":"3"},{"value":"4","label":"4"}]
+    },
+    { "type": "select", "id": "cols_desktop", "label": "Columns (desktop ≥990px)", "default": "4",
+      "options": [{"value":"3","label":"3"},{"value":"4","label":"4"},{"value":"5","label":"5"},{"value":"6","label":"6"}]
+    },
+    { "type": "range", "id": "grid_gap", "label": "Gap", "min": 0, "max": 48, "step": 2, "unit": "px", "default": 20 },
+
+    { "type": "header", "content": "Appearance" },
+    { "type": "select", "id": "card_style", "label": "Item style", "default": "plain",
+      "options": [{"value":"plain","label":"Plain"},{"value":"card","label":"Card"}]
+    },
+    { "type": "range", "id": "icon_size", "label": "Icon size", "min": 20, "max": 80, "step": 2, "unit": "px", "default": 36 }
+  ],
+  "blocks": [
+    { "type": "item", "name": "USP",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Free shipping" },
+        { "type": "richtext", "id": "text", "label": "Small text", "default": "<p>On orders over £50</p>" },
+        { "type": "image_picker", "id": "icon_image", "label": "Icon image (optional)" },
+        { "type": "textarea", "id": "icon_svg", "label": "Inline SVG (optional)" },
+        { "type": "text", "id": "emoji", "label": "Emoji (fallback)" },
+        { "type": "url", "id": "link", "label": "Link (optional)" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "USP / Icon Grid", "blocks": [{ "type":"item" }, { "type":"item" }, { "type":"item" }] }]
+}
+{% endschema %}

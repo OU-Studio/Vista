@@ -1,0 +1,172 @@
+{% comment %}
+FAQ Accordion (Vista)
+- Blocks: Question + Answer
+- Options: single-open vs multi-open, default open, search filter, JSON-LD
+{% endcomment %}
+
+<section class="faq color-scheme color-scheme-{{ section.settings.color_scheme }}">
+  <div class="faq__wrap" style="max-width: {{ section.settings.max_width | default: 900 }}px">
+
+    {% if section.settings.kicker != blank or section.settings.title != blank %}
+      <header class="faq__head" style="text-align: {{ section.settings.head_align }}">
+        {% if section.settings.kicker != blank %}
+          <div class="faq__kicker">{{ section.settings.kicker | escape }}</div>
+        {% endif %}
+        {% if section.settings.title != blank %}
+          {% assign h = section.settings.title_tag | default: 'h2' %}
+          <{{ h }} class="faq__title">{{ section.settings.title | escape }}</{{ h }}>
+        {% endif %}
+      </header>
+    {% endif %}
+
+    {% if section.settings.search_enable %}
+      <div class="faq__search">
+        <input type="search" placeholder="Search FAQs…" aria-label="Search FAQs" data-faq-search>
+      </div>
+    {% endif %}
+
+    <div class="faq__list" data-faq-list data-mode="{{ section.settings.mode }}">
+      {% for block in section.blocks %}
+        {% if block.type == 'item' %}
+          {% assign id = 'q-' | append: section.id | append: '-' | append: forloop.index %}
+          <details class="faq__item"
+                   id="{{ id }}"
+                   {% if section.settings.default_open == 'first' and forloop.first %}open{% endif %}
+                   {{ block.shopify_attributes }}>
+            <summary class="faq__q">
+              <span class="faq__qtext">{{ block.settings.q | escape }}</span>
+              <span class="faq__icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq__a rte">{{ block.settings.a }}</div>
+          </details>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if section.settings.enable_schema and section.blocks.size > 0 %}
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {% for block in section.blocks %}
+            {% if block.type == 'item' %}
+              {
+                "@type": "Question",
+                "name": {{ block.settings.q | json }},
+                "acceptedAnswer": { "@type": "Answer", "text": {{ block.settings.a | strip_newlines | json }} }
+              }{% unless forloop.last %},{% endunless %}
+            {% endif %}
+          {% endfor %}
+        ]
+      }
+      </script>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+.faq{ padding: clamp(28px, 6vw, 60px) 16px; }
+.faq__wrap{ margin: 0 auto; display:grid; gap: 16px; }
+.faq__head{ display:grid; gap:.5rem; margin-bottom: 4px; }
+.faq__kicker{ font-size:.85rem; letter-spacing:.08em; text-transform:uppercase; opacity:.8; }
+.faq__title{ margin:0; }
+.faq__search input{
+  width:100%; padding:.7rem 1rem; border-radius: 999px;
+  border:1px solid var(--color-border, rgba(0,0,0,.15));
+  background:#fff; color:inherit;
+}
+.faq__list{ display:grid; gap: 10px; }
+
+/* Item */
+.faq__item{
+  border:1px solid var(--color-border, rgba(0,0,0,.12));
+  border-radius: 12px; background: var(--color-surface, #fff);
+  overflow:hidden;
+}
+.faq__q{
+  list-style:none; cursor:pointer; display:flex; align-items:center; gap:.8rem;
+  padding: .9rem 1rem; margin:0; font-weight:600;
+}
+.faq__q::-webkit-details-marker{ display:none; }
+.faq__icon{ margin-left:auto; transition: transform .2s ease; }
+.faq__item[open] .faq__icon{ transform: rotate(45deg); } /* plus → x */
+
+.faq__a{ padding: .1rem 1rem 1rem; color: var(--color-muted, #444); }
+
+/* Search hide */
+.faq__item[hidden]{ display:none; }
+</style>
+
+<script>
+(() => {
+  const root = document.currentScript.closest('.faq');
+  if (!root) return;
+
+  // Single-open mode
+  const list = root.querySelector('[data-faq-list]');
+  if (list?.dataset.mode === 'single') {
+    list.addEventListener('toggle', (e) => {
+      const opened = e.target;
+      if (!(opened instanceof HTMLDetailsElement) || !opened.open) return;
+      list.querySelectorAll('.faq__item[open]').forEach(d => { if (d !== opened) d.open = false; });
+    }, true);
+  }
+
+  // Search filter
+  const field = root.querySelector('[data-faq-search]');
+  if (field) {
+    field.addEventListener('input', () => {
+      const q = field.value.toLowerCase().trim();
+      list.querySelectorAll('.faq__item').forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.hidden = q && !text.includes(q);
+      });
+    });
+  }
+
+  // Open from hash (e.g. /page#q-123-2)
+  const hash = location.hash.replace('#','');
+  if (hash) {
+    const target = root.querySelector('#' + CSS.escape(hash));
+    if (target && target.tagName === 'DETAILS') target.open = true;
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "FAQ Accordion",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" },
+    { "type": "text", "id": "kicker", "label": "Kicker" },
+    { "type": "text", "id": "title", "label": "Title" },
+    { "type": "select", "id": "title_tag", "label": "Title tag", "default": "h2",
+      "options": [{"value":"h1","label":"H1"},{"value":"h2","label":"H2"},{"value":"h3","label":"H3"}]
+    },
+    { "type": "select", "id": "head_align", "label": "Header alignment", "default": "center",
+      "options": [{"value":"left","label":"Left"},{"value":"center","label":"Center"},{"value":"right","label":"Right"}]
+    },
+    { "type": "range", "id": "max_width", "label": "Max width", "min": 600, "max": 1400, "step": 20, "unit": "px", "default": 900 },
+
+    { "type": "header", "content": "Behaviour" },
+    { "type": "select", "id": "mode", "label": "Accordion mode", "default": "single",
+      "options": [{"value":"single","label":"Single open"},{"value":"multi","label":"Multi open"}]
+    },
+    { "type": "select", "id": "default_open", "label": "Default state", "default": "closed",
+      "options": [{"value":"closed","label":"All closed"},{"value":"first","label":"First open"}]
+    },
+    { "type": "checkbox", "id": "search_enable", "label": "Enable search filter", "default": false },
+    { "type": "checkbox", "id": "enable_schema", "label": "Output FAQPage JSON-LD", "default": true }
+  ],
+  "blocks": [
+    { "type": "item", "name": "Question",
+      "settings": [
+        { "type": "text", "id": "q", "label": "Question", "default": "What is your shipping policy?" },
+        { "type": "richtext", "id": "a", "label": "Answer", "default": "<p>We ship within 24–48 hours on business days.</p>" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "FAQ Accordion", "blocks": [{ "type":"item" }, { "type":"item" }, { "type":"item" }] }]
+}
+{% endschema %}

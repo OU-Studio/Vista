@@ -1,1 +1,2 @@
-extends: theme-check:recommended
+# .theme-check.yml
+extends: :recommended
