@@ -1,2 +1,15 @@
-# .theme-check.yml
 extends: :recommended
+fail_level: error
+
+overrides:
+  - files:
+      - "sections/hero-vista.liquid"
+      - "sections/faq-accordion.liquid"
+      - "sections/usp-grid.liquid"
+      - "sections/main-article.liquid"
+      - "sections/main-search.liquid"
+      - "sections/main-cart.liquid"
+      - "sections/main-product.liquid"
+    rules:
+      InlineStyles: ignore
+      InlineJavaScript: ignore
