@@ -1,68 +1,183 @@
 {% comment %}
-  This section is used in the article template to render the article page, which
-  displays the full content of the blog post and can optionally include a
-  comments section for customers (not shown in this example).
-
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/article
+Article (Vista)
+- Hero image (if set)
+- Title, meta (date, author)
+- Content with readable width
+- Optional comments list + form
+- Previous / Next navigation
+- Scheme-aware and minimal CSS
 {% endcomment %}
 
-{% if article.image %}
-  {{ article.image | image_url: width: 1000 | image_tag }}
-{% endif %}
+<section class="article color-scheme color-scheme-{{ settings.default_color_scheme }}">
+  <div class="article__wrap">
 
-<h1>{{ article.title }}</h1>
+    {% if article.image %}
+      <figure class="article__hero">
+        {{ article.image | image_url: width: 2000 | image_tag: loading: 'eager', alt: article.title }}
+      </figure>
+    {% endif %}
 
-{% assign date = article.published_at | time_tag: format: 'date' %}
-<p>{{ 'blog.article_metadata_html' | t: date: date, author: article.author }}</p>
+    <header class="article__head">
+      <h1 class="article__title">{{ article.title }}</h1>
+      <p class="article__meta">
+        {{ article.published_at | date: "%B %e, %Y" }}
+        {% if article.author %} · by {{ article.author }}{% endif %}
+      </p>
+    </header>
 
-{{ article.content }}
+    <article class="article__content rte">
+      {{ article.content }}
+    </article>
 
-{% if blog.comments_enabled? %}
-  <h2>{{ 'blog.article_comments' | t }}</h2>
+    {% comment %} Prev / Next (derive by walking the blog list) {% endcomment %}
+    {% assign prev = blank %}
+    {% assign next = blank %}
+    {% assign seen = false %}
+    {% for a in blog.articles %}
+      {% if a.id == article.id %}
+        {% assign seen = true %}
+      {% elsif seen and next == blank %}
+        {% assign next = a %}
+      {% elsif seen == false %}
+        {% assign prev = a %}
+      {% endif %}
+    {% endfor %}
 
-  <div id="comments">
-    {% paginate article.comments by 10 %}
-      {% for comment in article.comments %}
-        <div>
-          <p>{{ comment.author }}</p>
-          <p>
-            {{- comment.created_at | time_tag: format: 'date' -}}
-          </p>
-          <p>{{ comment.content }}</p>
-        </div>
-      {% endfor %}
+    <nav class="article__nav">
+      {% if prev %}
+        <a class="anav__link anav__prev" href="{{ prev.url }}">&laquo; {{ prev.title }}</a>
+      {% else %}
+        <span class="anav__link is-disabled">&laquo; Previous</span>
+      {% endif %}
 
-      {{ paginate | default_pagination: anchor: 'comments' }}
-    {% endpaginate %}
+      <a class="anav__home" href="{{ blog.url }}">{{ blog.title }}</a>
+
+      {% if next %}
+        <a class="anav__link anav__next" href="{{ next.url }}">{{ next.title }} &raquo;</a>
+      {% else %}
+        <span class="anav__link is-disabled">Next &raquo;</span>
+      {% endif %}
+    </nav>
+
+    {% if blog.comments_enabled? %}
+      <section id="comments" class="article__comments">
+        <h2 class="h4">Comments</h2>
+
+        {% paginate article.comments by 10 %}
+          {% if article.comments_count == 0 %}
+            <p class="muted">No comments yet.</p>
+          {% else %}
+            <ul class="comments">
+              {% for comment in article.comments %}
+                <li class="comment">
+                  <div class="comment__meta">
+                    <strong>{{ comment.author }}</strong>
+                    <span>&middot;</span>
+                    <time datetime="{{ comment.created_at | date: '%Y-%m-%d' }}">{{ comment.created_at | date: "%B %e, %Y" }}</time>
+                  </div>
+                  <div class="comment__body">
+                    {{ comment.content }}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+
+          {% if paginate.pages > 1 %}
+            <div class="article__pagination">
+              {{ paginate | default_pagination: anchor: 'comments' }}
+            </div>
+          {% endif %}
+        {% endpaginate %}
+
+        {% form 'new_comment', article %}
+          <h3 class="h5">Leave a comment</h3>
+
+          {% if form.errors %}
+            <div class="form__errors">{{ form.errors | default_errors }}</div>
+          {% endif %}
+          {% if form.posted_successfully? %}
+            <p class="form__success">Thanks! Your comment was submitted{% if blog.moderated? %} and will appear once approved{% endif %}.</p>
+          {% endif %}
+
+          <div class="form__grid">
+            <label>
+              <span class="label">Name</span>
+              <input type="text" name="comment[author]" value="{{ form.author }}" required>
+            </label>
+
+            <label>
+              <span class="label">Email</span>
+              <input type="email" name="comment[email]" value="{{ form.email }}" required>
+            </label>
+          </div>
+
+          <label class="form__full">
+            <span class="label">Comment</span>
+            <textarea name="comment[body]" rows="5" required>{{ form.body }}</textarea>
+          </label>
+
+          <button type="submit" class="button button--primary">Post comment</button>
+        {% endform %}
+      </section>
+    {% endif %}
+
   </div>
+</section>
 
-  {% form 'new_comment', article %}
-    <h2>{{ 'blog.comment_form_title' | t }}</h2>
+<style>
+.article__wrap{ max-width: 900px; margin: 0 auto; padding: 32px 16px; }
+.article__hero img{ width:100%; height:auto; border-radius: var(--radius, 8px); display:block; }
+.article__head{ margin-top: 16px; margin-bottom: 8px; text-align: left; }
+.article__title{ margin: 0 0 6px; font-size: clamp(28px, 5vw, 44px); }
+.article__meta{ color: var(--color-muted, #666); margin: 0; }
 
-    {{ form.errors | default_errors }}
+.article__content{ margin-top: 16px; }
+.article__content :where(img, figure){ border-radius: var(--radius, 8px); }
+.article__content :where(blockquote){ border-left: 3px solid var(--color-border, rgba(0,0,0,.12)); padding-left: 12px; color: var(--color-muted, #555); }
 
-    <div>
-      <label for="author">{{ 'blog.comment_form_name' | t }}</label>
-      <input type="text" name="comment[author]" id="author" value="{{ form.author }}" required>
-    </div>
+.article__nav{
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  gap: 10px; margin: 28px 0;
+}
+.anav__link{ text-decoration: none; color: inherit; padding:.5rem .75rem; border:1px solid var(--color-border, rgba(0,0,0,.12)); border-radius: 999px; }
+.anav__link:hover{ background: rgb(var(--color-accent-rgb, 17 17 17) / .06); }
+.anav__prev{ justify-self: start; }
+.anav__next{ justify-self: end; }
+.anav__home{ color: var(--color-muted, #666); text-decoration: none; }
 
-    <div>
-      <label for="email">{{ 'blog.comment_form_email' | t }}</label>
-      <input type="email" name="comment[email]" id="email" value="{{ form.email }}" required>
-    </div>
+.article__comments{ margin: 28px 0; }
+.h4{ font-size: 1.25rem; margin: 0 0 .5rem; }
+.h5{ font-size: 1.05rem; margin: 1.25rem 0 .25rem; }
 
-    <div>
-      <label for="body">{{ 'blog.comment_form_body' | t }}</label>
-      <textarea name="comment[body]" id="body" required>{{ form.body }}</textarea>
-    </div>
+.comments{ list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.comment{ border:1px solid var(--color-border, rgba(0,0,0,.12)); border-radius: 8px; padding: 12px; background: var(--color-surface, #fff); }
+.comment__meta{ color: var(--color-muted, #666); font-size: .95rem; display:flex; gap:.5ch; align-items:center; margin-bottom: 6px; }
+.comment__body :where(p){ margin: .4rem 0; }
 
-    <input type="submit" value="{{ 'blog.comment_form_submit' | t }}">
-  {% endform %}
-{% endif %}
+.form__grid{ display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 600px){ .form__grid{ grid-template-columns: 1fr 1fr; } }
+.form__full{ display:block; margin-top: 12px; }
+.label{ display:block; font-size: .9rem; margin-bottom: .35rem; }
+input[type="text"], input[type="email"], textarea{
+  width: 100%; padding: .65rem .8rem; border-radius: 8px;
+  border: 1px solid var(--color-border, rgba(0,0,0,.15));
+  background: #fff; color: inherit; font: inherit;
+}
+.form__errors{ color: var(--color-error, #b00); margin-bottom: 8px; }
+.form__success{ color: #0a7a2f; margin-bottom: 8px; }
+
+.button{ display:inline-flex; align-items:center; gap:.5ch; padding:.7rem 1rem; border-radius:999px; border:1px solid rgb(var(--color-accent-rgb, 17 17 17)); background: rgb(var(--color-accent-rgb, 17 17 17)); color:#fff; text-decoration:none; cursor:pointer; }
+.button--primary:hover{ background: rgb(var(--color-accent-rgb, 17 17 17) / .85); border-color: transparent; }
+.button--secondary{ background:#fff; color: rgb(var(--color-accent-rgb, 17 17 17)); }
+.button--secondary:hover{ background: rgb(var(--color-accent-rgb, 17 17 17) / .06); }
+</style>
 
 {% schema %}
 {
-  "name": "t:general.article",
-  "settings": []
+  "name": "Article",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" }
+  ]
 }
 {% endschema %}

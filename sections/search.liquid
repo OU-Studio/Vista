@@ -1,70 +1,170 @@
 {% comment %}
-  This section is used in the search template to render search results for
-  products, articles, and pages.
-
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/search
+Search (Vista)
+- Simple search form (no predictive)
+- Scheme-aware
+- Grid of result cards; supports products, articles, pages
+- Shows price for products, type pill for non-products, excerpt
+- Uses your global .button classes
 {% endcomment %}
 
-<h1>{{ 'search.title' | t }}</h1>
+<section class="search color-scheme color-scheme-{{ settings.default_color_scheme }}">
+  <div class="search__wrap">
 
-<form action="{{ routes.search_url }}" method="get" role="search">
-  <input
-    type="search"
-    size="50"
-    name="q"
-    value="{{ search.terms | escape }}"
-    placeholder="{{ 'search.placeholder' | t }}"
-  >
-  <button type="submit">{{ 'search.submit' | t }}</button>
-</form>
+    <header class="search__head">
+      <h1 class="search__title">Search</h1>
+      <form class="search__form" action="{{ routes.search_url }}" method="get" role="search">
+        <input
+          type="search"
+          name="q"
+          value="{{ search.terms | escape }}"
+          placeholder="Search products, pages, articles"
+          aria-label="Search site"
+          class="search__input"
+        >
+        <button type="submit" class="button button--primary">Search</button>
+      </form>
+    </header>
 
-{% if search.performed %}
-  {% if search.results_count == 0 %}
-    <p>{{ 'search.no_results_html' | t: terms: search.terms }}</p>
-  {% else %}
-    <p>{{ 'search.results_for_html' | t: terms: search.terms, count: search.results_count }}</p>
+    {% if search.performed %}
+      {% if search.results_count == 0 %}
+        <p class="search__status">No results for “{{ search.terms | escape }}”. Try different keywords.</p>
+      {% else %}
+        <p class="search__status">
+          {{ search.results_count }} result{{ search.results_count | pluralize: '', 's' }} for “{{ search.terms | escape }}”
+        </p>
 
-    <div class="search-results">
-      {% paginate search.results by 20 %}
-        {% # Search result items may be an article, a page, or a product. %}
-        {% for result in search.results %}
-          <div class="search-result">
-            {% assign featured_image = result.featured_image | default: result.image %}
-            {% if featured_image %}
-              {% render 'image', class: 'search-result__image', image: featured_image, url: result.url, width: 400 %}
-            {% endif %}
-            <div class="search-result__content">
-              <p>
-                {{ result.title | link_to: result.url }}
-                {% if result.price %}
-                  {{ result.price | money_with_currency }}
-                {% endif %}
-              </p>
-            </div>
-          </div>
-        {% endfor %}
+        {% paginate search.results by 24 %}
+          <div class="search__grid">
+            {% for result in search.results %}
+  {% assign is_product = false %}
+  {% assign is_article = false %}
+  {% assign is_page = false %}
 
-        {{ paginate | default_pagination }}
-      {% endpaginate %}
-    </div>
+  {% if result.object_type == 'product' %}
+    {% assign is_product = true %}
+  {% elsif result.object_type == 'article' %}
+    {% assign is_article = true %}
+  {% elsif result.object_type == 'page' %}
+    {% assign is_page = true %}
   {% endif %}
-{% endif %}
 
-{% stylesheet %}
-  .search-results {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
-  .search-results .prev,
-  .search-results .page,
-  .search-results .next {
-    grid-column: 1 / -1;
-  }
-{% endstylesheet %}
+  {% assign img = result.featured_image | default: result.image %}
+
+  <article class="sr" data-type="{{ result.object_type }}">
+    <a class="sr__media" href="{{ result.url }}" aria-label="{{ result.title | escape }}">
+      {% if img %}
+        {{ img | image_url: width: 800 | image_tag: loading: 'lazy', sizes: '(min-width: 990px) 25vw, (min-width: 750px) 33vw, 90vw', alt: result.title }}
+      {% else %}
+        {% if is_product %}
+          {{ 'product-1' | placeholder_svg_tag }}
+        {% else %}
+          <div class="sr__placeholder" aria-hidden="true"></div>
+        {% endif %}
+      {% endif %}
+    </a>
+
+    <div class="sr__body">
+      <h3 class="sr__title"><a href="{{ result.url }}">{{ result.title }}</a></h3>
+
+      {% if is_product %}
+        {% assign v = result.selected_or_first_available_variant %}
+        <div class="sr__price">
+          {% if v.compare_at_price > v.price %}
+            <span class="price__now">{{ v.price | money_with_currency }}</span>
+            <s class="price__was">{{ v.compare_at_price | money_with_currency }}</s>
+          {% else %}
+            <span class="price__now">{{ v.price | money_with_currency }}</span>
+          {% endif %}
+        </div>
+      {% else %}
+        <span class="sr__type">
+          {% if is_article %}Article{% elsif is_page %}Page{% else %}Result{% endif %}
+        </span>
+      {% endif %}
+
+      {% if result.excerpt != blank %}
+        <p class="sr__excerpt">{{ result.excerpt | strip_html | truncate: 140 }}</p>
+      {% endif %}
+
+      <a class="button button--primary sr__cta" href="{{ result.url }}">
+        {% if is_product %}View product{% elsif is_article %}Read article{% elsif is_page %}View page{% else %}View item{% endif %}
+      </a>
+    </div>
+  </article>
+{% endfor %}
+
+          </div>
+
+          {% if paginate.pages > 1 %}
+            <nav class="search__pagination" role="navigation" aria-label="Pagination">
+              {% if paginate.previous %}
+                <a class="sp__link" href="{{ paginate.previous.url }}">&laquo; Previous</a>
+              {% else %}
+                <span class="sp__link is-disabled">&laquo; Previous</span>
+              {% endif %}
+              <span class="sp__meta">Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
+              {% if paginate.next %}
+                <a class="sp__link" href="{{ paginate.next.url }}">Next &raquo;</a>
+              {% else %}
+                <span class="sp__link is-disabled">Next &raquo;</span>
+              {% endif %}
+            </nav>
+          {% endif %}
+        {% endpaginate %}
+      {% endif %}
+    {% endif %}
+  </div>
+</section>
+
+<style>
+.search__wrap{ max-width:1200px; margin:0 auto; padding:32px 16px; }
+.search__head{ display:grid; gap:12px; margin-bottom:16px; }
+.search__title{ margin:0; font-size:clamp(22px, 3vw, 32px); }
+.search__form{ display:flex; gap:10px; flex-wrap:wrap; }
+.search__input{
+  flex:1 1 320px; min-width:240px;
+  border:1px solid var(--color-border, rgba(0,0,0,.15));
+  border-radius:999px; padding:.7rem 1rem; font-size:1rem;
+  background:#fff; color:inherit;
+}
+.search__status{ margin:8px 0 16px; color: var(--color-muted, #666); }
+
+.search__grid{ --gap:20px; display:grid; gap:var(--gap); grid-template-columns: repeat(2, minmax(0,1fr)); }
+@media (min-width:750px){ .search__grid{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
+@media (min-width:990px){ .search__grid{ grid-template-columns: repeat(4, minmax(0,1fr)); } }
+
+.sr{ display:grid; gap:10px; border:1px solid var(--color-border, rgba(0,0,0,.12)); border-radius:12px; overflow:hidden; background: var(--color-surface, #fff); }
+.sr__media{ display:block; aspect-ratio: 4 / 5; background: rgba(0,0,0,.04); }
+.sr__media img{ width:100%; height:100%; object-fit:cover; display:block; }
+.sr__placeholder{ width:100%; height:100%; background: linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.03)); }
+
+.sr__body{ display:grid; gap:6px; padding:12px; }
+.sr__title{ font-size:1rem; margin:0; }
+.sr__title a{ color:inherit; text-decoration:none; }
+.sr__title a:hover{ text-decoration:underline; }
+
+.sr__price{ display:flex; gap:.5rem; align-items:baseline; font-weight:600; }
+.price__was{ color: var(--color-muted, #666); text-decoration: line-through; }
+
+.sr__type{
+  display:inline-block; font-size:.8rem; padding:.25em .6em;
+  border:1px solid var(--color-border, rgba(0,0,0,.15)); border-radius:999px; color: var(--color-muted, #666);
+}
+
+.sr__excerpt{ margin:2px 0 6px; color: var(--color-muted, #666); font-size:.95rem; }
+.sr__cta{ margin-top:4px; }
+
+.search__pagination{ display:flex; gap:10px; justify-content:center; align-items:center; margin-top:16px; }
+.sp__link{ padding:.5rem .8rem; border:1px solid var(--color-border, rgba(0,0,0,.15)); border-radius:999px; text-decoration:none; color:inherit; }
+.sp__link.is-disabled{ opacity:.5; pointer-events:none; }
+.sp__meta{ color: var(--color-muted, #666); }
+</style>
 
 {% schema %}
 {
-  "name": "t:general.search",
-  "settings": []
+  "name": "Search (Vista)",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" }
+  ]
 }
 {% endschema %}
