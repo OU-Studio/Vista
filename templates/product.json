@@ -10,8 +10,12 @@
 {
   "sections": {
     "main": {
-      "type": "product",
-      "settings": {}
+      "type": "main-product",
+      "settings": {
+        "show_breadcrumbs": true,
+        "media_layout": "slideshow",
+        "variant_style": "pills"
+      }
     }
   },
   "order": [

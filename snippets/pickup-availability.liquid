@@ -1,0 +1,5 @@
+{%- if product.selected_or_first_available_variant.store_availabilities.size > 0 -%}
+  <div class="pickup-availability" data-store-availability-container>
+    {% render 'store-availability', product: product, current_variant: product.selected_or_first_available_variant %}
+  </div>
+{%- endif -%}

@@ -1,0 +1,30 @@
+{%- comment -%} Uses metafields for rich content {%- endcomment -%}
+{% assign tabs = '' | split: '' %}
+{% if product.metafields.details.materials != blank %}{% assign tabs = tabs | push: 'Materials' %}{% endif %}
+{% if product.metafields.details.dimensions != blank %}{% assign tabs = tabs | push: 'Dimensions' %}{% endif %}
+{% if product.metafields.details.care != blank %}{% assign tabs = tabs | push: 'Care' %}{% endif %}
+{% if shop.shipping_policy.body != blank %}{% assign tabs = tabs | push: 'Shipping & Returns' %}{% endif %}
+
+{% if tabs.size > 0 %}
+<div class="tabs" data-tabs>
+  <div class="tabs__list" role="tablist">
+    {% for t in tabs %}
+      <button class="tabs__tab{% if forloop.first %} is-active{% endif %}" role="tab" aria-selected="{{ forloop.first }}" data-tab="{{ t | handle }}">{{ t }}</button>
+    {% endfor %}
+  </div>
+  <div class="tabs__panels">
+    {% if product.metafields.details.materials != blank %}
+      <div class="tabs__panel is-active" role="tabpanel" data-panel="materials">{{ product.metafields.details.materials | metafield_tag }}</div>
+    {% endif %}
+    {% if product.metafields.details.dimensions != blank %}
+      <div class="tabs__panel" role="tabpanel" data-panel="dimensions">{{ product.metafields.details.dimensions | metafield_tag }}</div>
+    {% endif %}
+    {% if product.metafields.details.care != blank %}
+      <div class="tabs__panel" role="tabpanel" data-panel="care">{{ product.metafields.details.care | metafield_tag }}</div>
+    {% endif %}
+    {% if shop.shipping_policy.body != blank %}
+      <div class="tabs__panel" role="tabpanel" data-panel="shipping-and-returns">{{ shop.shipping_policy.body }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

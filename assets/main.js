@@ -54,6 +54,38 @@ function unmountControllers(root = document) {
   }
 }
 
+(function () {
+  async function updateCartCountFromServer() {
+    try {
+      const res = await fetch('/cart.js', { headers: { 'Accept': 'application/json' } });
+      const cart = await res.json();
+      const el = document.querySelector('[data-cart-count]');
+      if (el) el.textContent = cart.item_count || 0;
+    } catch (e) {
+      console.warn('Cart count fetch failed', e);
+    }
+  }
+
+  function optimisticBump(quantity) {
+    const el = document.querySelector('[data-cart-count]');
+    if (!el) return;
+    const current = parseInt(el.textContent || '0', 10) || 0;
+    el.textContent = current + (parseInt(quantity, 10) || 1);
+  }
+
+  // When our product page reports an add, bump immediately and then verify with server
+  document.addEventListener('cart:add', (e) => {
+    const qty = e.detail?.quantity || 1;
+    optimisticBump(qty);
+    updateCartCountFromServer();
+  });
+
+  // Keep fresh on load and after theme section reloads in the editor
+  document.addEventListener('DOMContentLoaded', updateCartCountFromServer);
+  document.addEventListener('shopify:section:load', updateCartCountFromServer);
+})();
+
+
 document.addEventListener('DOMContentLoaded', () => mountControllers());
 
 // Shopify Theme Editor hooks

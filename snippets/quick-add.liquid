@@ -1,0 +1,4 @@
+<form method="post" action="/cart/add" class="quick-add" data-quick-add>
+  <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+  <button class="btn btn--secondary" type="submit">{{ 'products.product.add_to_cart' | t }}</button>
+</form>

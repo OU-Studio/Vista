@@ -3,71 +3,317 @@
 <!doctype html>
 <html lang="{{ request.locale.iso_code }}">
   <head>
-    {% # Inlined CSS Variables %}
+    {% comment %} Scheme variables (foreground/background/accent/etc.) {% endcomment %}
     {% render 'css-variables' %}
 
-    {% # Load and preload the critical CSS %}
-    {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
+      {%- comment -%} Load selected fonts (@font-face) {%- endcomment -%}
+    <style>
+      {{ settings.font_heading | font_face: font_display: 'swap' }}
+      {{ settings.font_body    | font_face: font_display: 'swap' }}
+      {{ settings.font_misc    | font_face: 'swap' }}
+    </style>
 
-    {% # Social, title, etc. %}
+    {%- comment -%}
+      Map non-color theme settings → CSS custom properties.
+      (Color tokens come from color-schemes.liquid)
+    {%- endcomment -%}
+    {%- assign hs = settings['header-scaling'] -%}
+    {%- case hs -%}
+      {%- when 'minor_second'    -%}{%- assign h_ratio = 1.067 -%}
+      {%- when 'major_second'    -%}{%- assign h_ratio = 1.125 -%}
+      {%- when 'minor_third'     -%}{%- assign h_ratio = 1.200 -%}
+      {%- when 'major_third'     -%}{%- assign h_ratio = 1.250 -%}
+      {%- when 'perfect_forth'   -%}{%- assign h_ratio = 1.333 -%}
+      {%- when 'augmented_forth' -%}{%- assign h_ratio = 1.414 -%}
+      {%- when 'perfect_fifth'   -%}{%- assign h_ratio = 1.500 -%}
+      {%- when 'golden_ratio'    -%}{%- assign h_ratio = 1.618 -%}
+      {%- else -%}{%- assign h_ratio = 1.333 -%}
+    {%- endcase -%}
+
+    <style>
+      :root{
+        /* Typography (families) */
+        --t-font-heading: {{ settings.font_heading.family | json }}, {{ settings.font_heading.fallback_families | json }};
+        --t-font-body:    {{ settings.font_body.family    | json }}, {{ settings.font_body.fallback_families    | json }};
+        --t-font-misc:    {{ settings.font_misc.family    | json }}, {{ settings.font_misc.fallback_families    | json }};
+
+        /* Base type scale */
+        --t-body-size: {{ settings.body_font_size | default: 16 }}px;
+        --t-body-lh:   {{ settings.body_line_height | default: 1.2 }};
+        --t-heading-ratio: {{ h_ratio }};
+        --t-heading-lh: {{ settings.header_line_height | default: 1.2 }};
+        --t-body-tracking: {{ settings.body_letter_spacing }}em;
+        --t-heading-tracking: {{ settings.header_letter_spacing }}em;
+
+
+        /* Layout & spacing */
+        --container-max: {{ settings.site_max | default: 1200 }}px;
+        --gutter: {{ settings.gutter | default: 20 }}px;
+        --announce-height: 0px; /* updated by announcement bar JS if present */
+
+        /* Shape & elevation */
+        --radius: {{ settings.radius | default: 8 }}px;
+        --shadow-depth: {{ settings.shadow_depth | default: 1 }};
+        --elevation-0: 0 0 0 rgba(0,0,0,0);
+        --elevation-1: 0 1px 2px rgba(0,0,0,.08);
+        --elevation-2: 0 4px 10px rgba(0,0,0,.10);
+        --elevation-3: 0 10px 20px rgba(0,0,0,.12);
+
+        /* Icons & motion */
+        --icon-pack: "{{ settings.icon_pack | default: 'outline' }}";
+        --icon-stroke: {{ settings.icon_stroke | default: 2 }};
+        --motion: {{ settings.motion_speed | default: 100 | times: 0.01 }};
+
+        /* Buttons (shape) */
+        --btn-shape: "{{ settings.btn_shape | default: 'soft' }}";
+        --btn-radius: {% if settings.btn_shape == 'pill' %}999px{% elsif settings.btn_shape == 'square' %}0px{% else %}{{ settings.radius | default: 8 }}px{% endif %};
+        --btn-weight: "{{ settings.btn_weight | default: 'solid' }}";
+        --btn-uppercase: {% if settings.btn_uppercase %}1{% else %}0{% endif %};
+
+        /* Cards */
+        --card-radius: {{ settings.card_radius | default: 8 }}px;
+        --card-shadow-depth: {{ settings.card_shadow | default: 1 }};
+        --card-pad-x: {{ settings.card_padding_x | default: 16 }}px;
+        --card-pad-y: {{ settings.card_padding_y | default: 16 }}px;
+
+        /* Images & media */
+        --img-ratio-default: "{{ settings.image_ratio_default | default: 'auto' }}";
+        --img-soft-corners: {% if settings.image_soft_corners %}1{% else %}0{% endif %};
+        --img-lazy: {% if settings.image_lazy %}1{% else %}0{% endif %};
+
+        /* Product defaults */
+        --prod-quick-add: {% if settings.show_quick_add %}1{% else %}0{% endif %};
+        --prod-second-image: {% if settings.show_second_image_on_hover %}1{% else %}0{% endif %};
+        --prod-compare-price: {% if settings.show_price_compare %}1{% else %}0{% endif %};
+        --prod-badges: {% if settings.show_badges %}1{% else %}0{% endif %};
+        --grid-cols-desktop: {{ settings.grid_columns_desktop | default: 4 }};
+
+        /* Search & quick view */
+        --predictive-search: {% if settings.enable_predictive_search %}1{% else %}0{% endif %};
+        --quick-view: {% if settings.enable_quick_view %}1{% else %}0{% endif %};
+
+        /* Accessibility & UX */
+        --focus-outline-always: {% if settings.focus_outline_always %}1{% else %}0{% endif %};
+        --respect-reduced-motion: {% if settings.respect_reduced_motion %}1{% else %}0{% endif %};
+        --skip-links-enabled: {% if settings.enable_skip_links %}1{% else %}0{% endif %};
+      }
+    </style>
+
+    {%- assign base = settings.body_font_size | default: 16 -%}
+    {%- assign r = h_ratio -%}
+    <style>
+      h6 { font-size: {{ base | times: r | round: 2 }}px; }
+      h5 { font-size: {{ base | times: r | times: r | round: 2 }}px; }
+      h4 { font-size: {{ base | times: r | times: r | times: r | round: 2 }}px; }
+      h3 { font-size: {{ base | times: r | times: r | times: r | times: r | round: 2 }}px; }
+      h2 { font-size: {{ base | times: r | times: r | times: r | times: r | times: r | round: 2 }}px; }
+      h1 { font-size: {{ base | times: r | times: r | times: r | times: r | times: r | times: r | round: 2 }}px; }
+    </style>
+
+
+{{ 'base.css' | asset_url | stylesheet_tag }}
+    {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
     {% render 'meta-tags' %}
 
     {% style %}
-      main {
-        text-align: center;
+      :root{
+        --gc-radius: 16px;
+        --gc-shadow: 0 8px 30px rgba(0,0,0,.12);
+        --gc-gap: 16px;
       }
-      main img {
-        display: unset;
+
+      .gc {
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        background: var(--color-background);
+        color: var(--color-foreground);
+      }
+
+      .gc__wrap {
+        width: min(720px, calc(100% - 32px));
+        margin: 32px auto;
+      }
+
+      /* Header */
+      .gc__shop {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .gc__logo img { display:block; margin: 0 auto 8px; max-height: 56px; width:auto; }
+
+      /* Card */
+      .gc__card {
+        border-radius: var(--gc-radius);
+        box-shadow: var(--gc-shadow);
+        padding: clamp(18px, 4vw, 28px);
+        background:
+          radial-gradient(120% 120% at 100% 0, rgb(var(--color-accent-rgb, 17 17 17) / .08) 0 50%, transparent 55%) ,
+          radial-gradient(90% 90% at 0 100%, rgb(var(--color-accent-rgb, 17 17 17) / .06) 0 50%, transparent 55%),
+          var(--color-surface, #fff);
+        border: 1px solid var(--color-border, rgba(0,0,0,.12));
+      }
+
+      .gc__balance {
+        font-size: clamp(28px, 6vw, 40px);
+        font-weight: 700;
+        margin: 0 0 6px;
+      }
+      .gc__status {
+        margin: 0 0 16px;
+        color: var(--color-muted, #666);
+        font-size: 0.95rem;
+      }
+
+      .gc__preview {
+        display: grid;
+        gap: 8px;
+        place-items: center;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid var(--color-border, rgba(0,0,0,.12));
+        padding: 16px;
+      }
+      .gc__preview img { width: 280px; height: auto; display:block; }
+
+      .gc__code {
+        margin-top: 16px;
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+      }
+      .gc__code-kicker { font-size: .9rem; color: var(--color-muted, #666); }
+      .gc__code-value {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: clamp(18px, 4.5vw, 24px);
+        letter-spacing: .08em;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: rgb(var(--color-accent-rgb, 17 17 17) / .06);
+        border: 1px dashed rgb(var(--color-accent-rgb, 17 17 17) / .35);
+      }
+
+      .gc__actions {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+      }
+      .btn {
+        display:inline-flex; align-items:center; gap:.5ch;
+        padding: .7rem 1.1rem; border-radius: 999px; cursor:pointer;
+        border:1px solid rgb(var(--color-accent-rgb, 17 17 17));
+        background: rgb(var(--color-accent-rgb, 17 17 17));
+        color: #fff; text-decoration:none; font-weight: 600;
+        transition: .2s ease;
+        font-family: var(--t-font-heading);
+    line-height: var(--t-heading-lh);
+    letter-spacing: var(--t-heading-tracking);
+      }
+      .btn:hover { background: rgb(var(--color-accent-rgb, 17 17 17) / .85); border-color: transparent; }
+      .btn--ghost { background:#fff; color: rgb(var(--color-accent-rgb, 17 17 17)); }
+      .btn--ghost:hover { background: rgb(var(--color-accent-rgb, 17 17 17) / .06); }
+
+      .gc__footer {
+        text-align:center;
+        margin-top: 14px;
+        color: var(--color-muted, #666);
+        font-size: .95rem;
+      }
+
+      @media print {
+        .gc { background:#fff; }
+        .gc__actions { display:none !important; }
+        .gc__wrap { width: 100%; margin: 0; }
+        .gc__card { box-shadow: none; }
       }
     {% endstyle %}
 
     {{ content_for_header }}
   </head>
 
-  <body>
-    <main>
-      <div class="shopify-section">
-        <h1>{{ gift_card.balance | money }}</h1>
-
-        {% if gift_card.enabled == false or gift_card.expired %}
-          <p>{{ 'gift_card.expired' | t }}</p>
-        {% endif %}
-
-        {% if gift_card.expires_on %}
-          {% assign expires_on = gift_card.expires_on | date: '%B %e, %Y' %}
-          <p>
-            {{ 'gift_card.expires_on' | t: expires_on: expires_on }}
-          </p>
-        {% endif %}
-
-        <p>
-          {% if settings.logo %}
-            {{ settings.logo | image_url: width: 300 | image_tag: alt: shop.name }}
-          {% else %}
-            <img
-              src="{{ 'gift-card/card.svg' | shopify_asset_url }}"
-              alt="{{ 'gift_card.card' | t }}"
-              width="300"
-              height="200"
-            >
+  <body class="color-scheme color-scheme-{{ settings.default_color_scheme }}">
+    <main class="gc">
+      <div class="gc__wrap">
+        <header class="gc__shop">
+          {% if settings.logo != blank %}
+            <div class="gc__logo">
+              {{ settings.logo | image_url: width: 240 | image_tag: alt: shop.name, loading: 'eager' }}
+            </div>
           {% endif %}
-        </p>
+          <div class="gc__shop-name">{{ shop.name }}</div>
+        </header>
 
-        <h2>{{ shop.name }}</h2>
-        <p>{{ 'gift_card.use_at_checkout' | t }}</p>
-        <p>{{ gift_card.code | format_code }}</p>
+        <section class="gc__card" aria-labelledby="giftcard-balance">
+          <h1 id="giftcard-balance" class="gc__balance">{{ gift_card.balance | money_with_currency }}</h1>
 
-        {% if gift_card.pass_url %}
-          <a href="{{ gift_card.pass_url }}">
-            <img
-              src="{{ 'gift-card/add-to-apple-wallet.svg' | shopify_asset_url }}"
-              alt="{{ 'gift_card.add_to_apple_wallet' | t }}"
-              width="200"
-              height="60"
-            >
-          </a>
-        {% endif %}
+          {% if gift_card.enabled == false or gift_card.expired %}
+            <p class="gc__status">This gift card is not active.</p>
+          {% elsif gift_card.expires_on %}
+            <p class="gc__status">Expires on {{ gift_card.expires_on | date: '%B %e, %Y' }}.</p>
+          {% else %}
+            <p class="gc__status">No expiry date.</p>
+          {% endif %}
+
+          <div class="gc__preview">
+            {% if settings.logo %}
+              {{ settings.logo | image_url: width: 300 | image_tag: alt: shop.name }}
+            {% else %}
+              <img
+                src="{{ 'gift-card/card.svg' | shopify_asset_url }}"
+                alt="Gift card"
+                width="300" height="200">
+            {% endif %}
+          </div>
+
+          <div class="gc__code">
+            <div class="gc__code-kicker">Use this code at checkout</div>
+            <div class="gc__code-value" data-gc-code>{{ gift_card.code | format_code }}</div>
+          </div>
+
+          <div class="gc__actions">
+            <button class="btn  btn--ghost" data-copy-code type="button">Copy code</button>
+            <button class="btn  btn--ghost" onclick="window.print()" type="button">Print</button>
+
+            {% if gift_card.pass_url %}
+              <a class="button" href="{{ gift_card.pass_url }}">
+                <img
+                  src="{{ 'gift-card/add-to-apple-wallet.svg' | shopify_asset_url }}"
+                  alt=""
+                  width="22" height="22" decoding="async" loading="lazy" style="display:inline-block">
+                Add to Apple Wallet
+              </a>
+            {% endif %}
+
+            <a class="btn " href="{{ routes.root_url }}">Start shopping</a>
+          </div>
+
+          <p class="gc__footer">Remaining balance updates as you spend. Keep this code safe.</p>
+        </section>
       </div>
     </main>
+
+    <script>
+      (function(){
+        const btn = document.querySelector('[data-copy-code]');
+        const codeEl = document.querySelector('[data-gc-code]');
+        if (!btn || !codeEl) return;
+
+        btn.addEventListener('click', async ()=>{
+          const text = codeEl.textContent.replace(/\s+/g, '');
+          try{
+            await navigator.clipboard.writeText(text);
+            const orig = btn.textContent;
+            btn.textContent = 'Copied ✓';
+            setTimeout(()=> btn.textContent = orig, 1400);
+          }catch(e){
+            // Fallback: select text
+            const sel = window.getSelection(); const r = document.createRange();
+            r.selectNodeContents(codeEl); sel.removeAllRanges(); sel.addRange(r);
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

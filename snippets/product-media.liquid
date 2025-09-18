@@ -1,0 +1,79 @@
+{%- assign layout = media_layout | default: 'grid-2' -%}
+
+{% if layout == 'slideshow' %}
+  <div class="media-slides" data-slides>
+    <div class="media-slides__track" data-slides-track>
+      {% for media in product.media %}
+        <figure class="media-item">
+          {% case media.media_type %}
+            {% when 'image' %}
+              {{ media | image_url: width: 1600 | image_tag: loading: 'eager', sizes: '(min-width: 1000px) 50vw, 100vw', alt: media.alt | escape }}
+            {% when 'video' %}
+              {{ media | video_tag: controls: true, autoplay: true, loop: true, muted: true, playsinline: true }}
+            {% when 'external_video' %}
+              {{ media | external_video_tag }}
+            {% when 'model' %}
+              {{ media | model_viewer_tag:
+                  poster: media.preview_image | image_url: width: 1200,
+                  reveal: 'interaction',
+                  ar: true,
+                  loading: 'lazy' }}
+            {% else %}
+              {{ media | media_tag }}
+          {% endcase %}
+        </figure>
+      {% endfor %}
+    </div>
+    <button class="slides-nav prev" type="button" aria-label="Previous">‹</button>
+    <button class="slides-nav next" type="button" aria-label="Next">›</button>
+  </div>
+
+{% elsif layout == 'grid-1' %}
+  <div class="media-grid media-grid--1">
+    {% for media in product.media %}
+      <figure class="media-item">
+        {% case media.media_type %}
+          {% when 'image' %}
+            {{ media | image_url: width: 1600 | image_tag: loading: 'lazy', sizes: '(min-width: 1000px) 50vw, 100vw', alt: media.alt | escape }}
+          {% when 'video' %}
+            {{ media | video_tag: controls: true, autoplay: true, loop: true, muted: true, playsinline: true }}
+          {% when 'external_video' %}
+            {{ media | external_video_tag }}
+          {% when 'model' %}
+            {{ media | model_viewer_tag:
+                poster: media.preview_image | image_url: width: 1200,
+                reveal: 'interaction',
+                ar: true,
+                loading: 'lazy' }}
+          {% else %}
+            {{ media | media_tag }}
+        {% endcase %}
+      </figure>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <!-- grid-2 -->
+  <div class="media-grid media-grid--2">
+    {% for media in product.media %}
+      <figure class="media-item">
+        {% case media.media_type %}
+          {% when 'image' %}
+            {{ media | image_url: width: 1200 | image_tag: loading: 'lazy', sizes: '(min-width: 1000px) 25vw, 50vw', alt: media.alt | escape }}
+          {% when 'video' %}
+            {{ media | video_tag: controls: true, autoplay: true, loop: true, muted: true, playsinline: true }}
+          {% when 'external_video' %}
+            {{ media | external_video_tag }}
+          {% when 'model' %}
+            {{ media | model_viewer_tag:
+                poster: media.preview_image | image_url: width: 1200,
+                reveal: 'interaction',
+                ar: true,
+                loading: 'lazy' }}
+          {% else %}
+            {{ media | media_tag }}
+        {% endcase %}
+      </figure>
+    {% endfor %}
+  </div>
+{% endif %}

@@ -151,10 +151,16 @@ Notes:
   color: var(--overlay-text, currentColor); /* falls back to currentColor */
 }
 
+.acg-{{ section.id }}-pad {
+  padding-top: {{ section.settings.pad_top | default: 40 }}px;
+  padding-bottom: {{ section.settings.pad_bottom | default: 40 }}px;
+}
+
+
 
 </style>
 
-<section class="acg-{{ section.id }} color-scheme color-scheme-{{ scheme }}">
+<section class="acg-{{ section.id }} color-scheme color-scheme-{{ scheme }} acg-{{ section.id }}-pad">
   <div class="acg__wrap">
 
     {% if show_kicker or show_title %}
@@ -382,7 +388,11 @@ Accepts:
     { "type": "checkbox", "id": "fallback_first_product", "label": "Fallback to first product image when collection image is empty", "default": false },
     { "type": "checkbox", "id": "skip_frontpage", "label": "Skip 'Frontpage' collection", "default": true },
     { "type": "checkbox", "id": "show_empty", "label": "Include empty collections", "default": false },
-    { "type": "range", "id": "limit", "label": "Max collections to show", "min": 1, "max": 100, "step": 1, "default": 20 }
+    { "type": "range", "id": "limit", "label": "Max collections to show", "min": 1, "max": 100, "step": 1, "default": 20 },
+
+    { "type": "header", "content": "Section padding" },
+{ "type": "range", "id": "pad_top", "label": "Padding top", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 40 },
+{ "type": "range", "id": "pad_bottom", "label": "Padding bottom", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 40 }
   ],
   "blocks": [],
   "presets": [

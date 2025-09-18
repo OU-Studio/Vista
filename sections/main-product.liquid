@@ -1,0 +1,109 @@
+<section id="Product-{{ section.id }}" class="prd prd--vista color-scheme color-scheme-{{ section.settings.color_scheme }}">
+
+  {% if section.settings.show_breadcrumbs %}
+    <nav class="prd-breadcrumbs" aria-label="Breadcrumbs">
+      <a href="{{ routes.root_url }}">Home</a>
+      <span>›</span>
+      <a href="{{ product.collections.first.url | default: routes.all_products_collection_url }}">
+        {{ product.collections.first.title | default: 'Products' }}
+      </a>
+      <span>›</span>
+      <span aria-current="page">{{ product.title }}</span>
+    </nav>
+  {% endif %}
+
+  <div class="prd__grid">
+    <!-- Left: media -->
+    <div class="prd__media">
+      {% render 'product-media', product: product, media_layout: section.settings.media_layout %}
+    </div>
+
+    <!-- Right: summary -->
+    <div class="prd__summary" data-product-handle="{{ product.handle }}" data-money-format="{{ shop.money_with_currency_format | escape }}">
+      <h1 class="prd-title">{{ product.title }}</h1>
+
+      <div class="prd-price">{% render 'price', product: product %}</div>
+
+      {% if product.description != blank %}
+        <div class="prd-desc rte">
+          {{ product.description }}
+        </div>
+      {% endif %}
+
+      <div class="prd-variants">
+        {% render 'variant-picker', product: product, variant_style: section.settings.variant_style, update_url: true %}
+      </div>
+
+      <div class="prd-qty">
+        <label class="label" for="Quantity-{{ section.id }}">Quantity</label>
+        <input id="Quantity-{{ section.id }}" class="qty-input" name="quantity" type="number" min="1" value="1" inputmode="numeric">
+      </div>
+
+      <form method="post" action="/cart/add" class="prd-buy" data-product-form>
+        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}" data-variant-id>
+        <input type="hidden" name="quantity" value="1" data-qty-hidden>
+        <button type="submit" class="btn btn--primary" data-atc>
+          <span data-atc-text>Add to cart</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JSON-LD: minimal -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": {{ product.title | json }},
+    "image": [{% for m in product.media %}{{ m.preview_image.src | json }}{% unless forloop.last %},{% endunless %}{% endfor %}],
+    "description": {{ product.description | strip_html | json }},
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": {{ shop.currency | json }},
+      "price": {{ product.selected_or_first_available_variant.price | money_without_currency | replace: ',', '' | json }},
+      "availability": "https://schema.org/{% if product.selected_or_first_available_variant.available %}InStock{% else %}OutOfStock{% endif %}"
+    }
+  }
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "Main product",
+  "settings": [
+    { "type": "checkbox", "id": "show_breadcrumbs", "label": "Show breadcrumbs", "default": true },
+    {
+      "type": "select",
+      "id": "media_layout",
+      "label": "Product image layout",
+      "options": [
+        { "value": "grid-2", "label": "2 per row" },
+        { "value": "grid-1", "label": "1 per row" },
+        { "value": "slideshow", "label": "Slideshow" }
+      ],
+      "default": "grid-2"
+    },
+    {
+      "type": "select",
+      "id": "variant_style",
+      "label": "Variant style",
+      "options": [
+        { "value": "pills", "label": "Pills" },
+        { "value": "dropdown", "label": "Dropdown" }
+      ],
+      "default": "pills"
+    },
+    {
+  "type": "color_scheme",
+  "id": "color_scheme",
+  "label": "Color scheme",
+  "default": "scheme-1"
+}
+
+  ],
+  "presets": [{ "name": "Product" }]
+}
+{% endschema %}
+
+{{ 'product.css' | asset_url | stylesheet_tag: preload: true }}
+{{ 'product.js'  | asset_url | script_tag }}

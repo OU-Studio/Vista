@@ -1,0 +1,472 @@
+{% comment %}
+Product Collection Grid
+- Mirrors the All Collections Grid, but for products from a chosen collection.
+- Title handling (none/above/below/overlay), H1–H6/body/button styles
+- Flexbox grid with leftover row justify (left/center/right) and row vertical alignment
+- Overlay alignment + opacity + text color
+{% endcomment %}
+
+
+{%- liquid
+  assign scheme     = section.settings.color_scheme | default: settings.default_color_scheme | default: 'scheme-1'
+  assign maxw       = section.settings.max_width | default: 1200
+  assign grid_gap   = section.settings.grid_gap | default: 24
+  assign show_kicker = section.settings.kicker 
+  assign show_title  = section.settings.title 
+  assign coll        = section.settings.collection | default: collection
+-%}
+
+
+<style>
+    .pcg-{{ section.id }}-pad {
+  padding-top: {{ section.settings.pad_top | default: 40 }}px;
+  padding-bottom: {{ section.settings.pad_bottom | default: 40 }}px;
+}
+
+  .pcg-{{ section.id }} .pcg__wrap {
+    margin-inline: auto;
+    padding-inline: var(--gutter, 24px);
+    max-width: {{ maxw }}px;
+  }
+
+  .pcg-{{ section.id }} .pcg__head {
+    display: grid;
+    gap: {{ section.settings.head_gap | default: 12 }}px;
+    margin-bottom: {{ section.settings.head_margin_bottom | default: 24 }}px;
+    text-align: {{ section.settings.head_align | default: 'center' }};
+  }
+  .pcg-{{ section.id }} .pcg__kicker { font-size:.85em; letter-spacing:.06em; text-transform:uppercase; opacity:.8; }
+  .pcg-{{ section.id }} .pcg__title  { margin:0; }
+
+  /* GRID (Flex so last row can be left/center/right) */
+  .pcg-{{ section.id }} .pg__grid {
+    --gap: {{ grid_gap }}px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap);
+
+    /* leftover alignment */
+    justify-content:
+      {% case section.settings.row_align %}
+        {% when 'left' %}flex-start
+        {% when 'right' %}flex-end
+        {% else %}center
+      {% endcase %};
+
+    /* vertical alignment across each row */
+    align-items:
+      {% case section.settings.row_valign %}
+        {% when 'top' %}flex-start
+        {% when 'center' %}center
+        {% when 'bottom' %}flex-end
+        {% else %}stretch
+      {% endcase %};
+  }
+
+  /* Card widths (no grow so last item keeps same width as siblings) */
+  .pcg-{{ section.id }} .pg {
+    flex: 0 1 100%;
+    max-width: 100%;
+    display: grid;
+    gap: {{ section.settings.card_gap | default: 10 }}px;
+    height: 100%;
+    position: relative;
+  }
+  @media (min-width: 750px){
+    .pcg-{{ section.id }} .pg__grid[data-cols-m="1"] .pg { flex-basis: 100%; max-width: 100%; }
+    .pcg-{{ section.id }} .pg__grid[data-cols-m="2"] .pg { flex-basis: calc((100% - var(--gap)) / 2); max-width: calc((100% - var(--gap)) / 2); }
+    .pcg-{{ section.id }} .pg__grid[data-cols-m="3"] .pg { flex-basis: calc((100% - (2 * var(--gap))) / 3); max-width: calc((100% - (2 * var(--gap))) / 3); }
+  }
+  @media (min-width: 990px){
+    .pcg-{{ section.id }} .pg__grid[data-cols-d="1"] .pg { flex-basis: 100%; max-width: 100%; }
+    .pcg-{{ section.id }} .pg__grid[data-cols-d="2"] .pg { flex-basis: calc((100% - var(--gap)) / 2); max-width: calc((100% - var(--gap)) / 2); }
+    .pcg-{{ section.id }} .pg__grid[data-cols-d="3"] .pg { flex-basis: calc((100% - (2 * var(--gap))) / 3); max-width: calc((100% - (2 * var(--gap))) / 3); }
+    .pcg-{{ section.id }} .pg__grid[data-cols-d="4"] .pg { flex-basis: calc((100% - (3 * var(--gap))) / 4); max-width: calc((100% - (3 * var(--gap))) / 4); }
+  }
+
+  /* Card media */
+  .pcg-{{ section.id }} .pg__media {
+    position: relative;
+    overflow: hidden;
+    border-radius: {{ settings.radius | default: 0 }}px;
+    aspect-ratio: {{ section.settings.aspect_ratio | default: '16 / 9' }};
+    background: rgba(0,0,0,.05);
+  }
+  .pcg-{{ section.id }} .pg__media img { width:100%; height:100%; object-fit:cover; display:block; }
+
+  /* Overlay area */
+  .pcg-{{ section.id }} .pg__overlay {
+    position: absolute; inset: 0;
+    display: flex;
+    padding: {{ section.settings.overlay_pad | default: 16 }}px;
+    pointer-events: none;
+  }
+  .pcg-{{ section.id }} .pg__overlay::before {
+    content:"";
+    position:absolute; inset:0;
+    background: rgba(0,0,0, var(--scrim, 0));
+  }
+  .pcg-{{ section.id }} .pg__overlay-inner {
+    position: relative;
+    pointer-events: auto;
+    color: var(--overlay-text, currentColor);
+  }
+
+  /* Above/Below spacing + alignment utility on the card */
+  .pcg-{{ section.id }} .pg__title { margin:0; }
+  .pcg-{{ section.id }} .pg--ta-left  .pg__title,
+  .pcg-{{ section.id }} .pg--ta-left  .pg__btn  { justify-self:start; text-align:left; }
+  .pcg-{{ section.id }} .pg--ta-center .pg__title,
+  .pcg-{{ section.id }} .pg--ta-center .pg__btn  { justify-self:center; text-align:center; }
+  .pcg-{{ section.id }} .pg--ta-right .pg__title,
+  .pcg-{{ section.id }} .pg--ta-right .pg__btn  { justify-self:end; text-align:right; }
+
+  /* Button style when text_style == 'button' */
+  .pcg-{{ section.id }} .pg__btn {
+    display: inline-flex;
+    padding: .65em 1.1em;
+    border-radius: {{ settings.radius | default: 0 }}px;
+    text-decoration: none;
+    width: auto; max-width: max-content;
+  }
+
+  /* Quick Add */
+.pcg-{{ section.id }} .pg__qa { display: flex; gap: 8px; flex-wrap: wrap; }
+.pcg-{{ section.id }} .pg__add {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: .65em 1.1em; border-radius: {{ settings.radius | default: 0 }}px; text-decoration: none;
+  width: auto; max-width: max-content;
+}
+.pcg-{{ section.id }} .pg__add.button--link { padding: 0; }
+.pcg-{{ section.id }} .pg__msg { font-size: .9em; opacity: .8; min-height: 1em; }
+
+</style>
+
+<section class="pcg-{{ section.id }} color-scheme color-scheme-{{ scheme }} pcg-{{ section.id }}-pad">
+  <div class="pcg__wrap">
+
+    {% if show_kicker or show_title %}
+      <header class="pcg__head">
+        {% if show_kicker %}<div class="pcg__kicker">{{ section.settings.kicker | escape }}</div>{% endif %}
+        {% if show_title %}
+          {%- assign htag = section.settings.title_tag | default: 'h2' -%}
+          <{{ htag }} class="pcg__title">{{ section.settings.title | escape }}</{{ htag }}>
+        {% endif %}
+      </header>
+    {% endif %}
+
+    {%- if coll == blank -%}
+      <p style="text-align:center; opacity:.7;">Select a collection in the section settings.</p>
+    {%- else -%}
+      <div
+        class="pg__grid"
+        data-cols-m="{{ section.settings.cols_mobile | default: '2' }}"
+        data-cols-d="{{ section.settings.cols_desktop | default: '3' }}"
+        style="--gap: {{ grid_gap }}px"
+      >
+        {%- assign limit = section.settings.limit | default: 12 -%}
+        {%- assign shown = 0 -%}
+        {%- for product in coll.products -%}
+          {%- if product == blank -%}{% continue %}{%- endif -%}
+          {%- assign shown = shown | plus: 1 -%}
+          {%- if shown > limit -%}{% break %}{%- endif -%}
+
+          {%- assign img = product.featured_image -%}
+
+          <article class="pg pg--ta-{{ section.settings.title_ab_align | default: 'center' }}">
+            {%- if section.settings.title_position == 'above' and section.settings.show_product_title -%}
+              {%- case section.settings.text_style -%}
+                {%- when 'button' -%}
+                  <a class="pg__btn button button--primary" href="{{ product.url }}">{{ product.title | escape }}</a>
+                {%- when 'body' -%}
+                  <div class="pg__title">{{ product.title | escape }}</div>
+                {%- else -%}
+                  <{{ section.settings.text_style }} class="pg__title">{{ product.title | escape }}</{{ section.settings.text_style }}>
+              {%- endcase -%}
+            {%- endif -%}
+
+            <a class="pg__media" href="{{ product.url }}" aria-label="{{ product.title | escape }}">
+              {%- if img -%}
+                <img
+                  src="{{ img | image_url: width: 1100 }}"
+                  srcset="
+                    {{ img | image_url: width: 375 }} 375w,
+                    {{ img | image_url: width: 550 }} 550w,
+                    {{ img | image_url: width: 750 }} 750w,
+                    {{ img | image_url: width: 990 }} 990w,
+                    {{ img | image_url: width: 1100 }} 1100w
+                  "
+                  sizes="(min-width: 990px) 33vw, (min-width: 750px) 50vw, 100vw"
+                  alt="{{ product.title | escape }}"
+                  loading="lazy"
+                  width="{{ img.width }}" height="{{ img.height }}">
+              {%- endif -%}
+
+              {%- if section.settings.title_position == 'overlay' and section.settings.show_product_title -%}
+                <div class="pg__overlay"
+                     style="
+                       --scrim: {{ section.settings.overlay_opacity | default: 0 }};
+                       --overlay-text: {{ section.settings.overlay_text_color }};
+                       justify-content: {% case section.settings.overlay_h %}{% when 'left' %}flex-start{% when 'right' %}flex-end{% else %}center{% endcase %};
+                       align-items: {% case section.settings.overlay_v %}{% when 'top' %}flex-start{% when 'bottom' %}flex-end{% else %}center{% endcase %};
+                     ">
+                  <div class="pg__overlay-inner">
+                    {%- case section.settings.text_style -%}
+                      {%- when 'button' -%}
+                        <a class="pg__btn button button--primary" href="{{ product.url }}">{{ product.title | escape }}</a>
+                      {%- when 'body' -%}
+                        <div class="pg__title">{{ product.title | escape }}</div>
+                      {%- else -%}
+                        <{{ section.settings.text_style }} class="pg__title">{{ product.title | escape }}</{{ section.settings.text_style }}>
+                    {%- endcase -%}
+                  </div>
+                </div>
+              {%- endif -%}
+            </a>
+
+            {%- if section.settings.title_position == 'below' and section.settings.show_product_title -%}
+              {%- case section.settings.text_style -%}
+                {%- when 'button' -%}
+                  <a class="pg__btn button button--primary" href="{{ product.url }}">{{ product.title | escape }}</a>
+                {%- when 'body' -%}
+                  <div class="pg__title">{{ product.title | escape }}</div>
+                {%- else -%}
+                  <{{ section.settings.text_style }} class="pg__title">{{ product.title | escape }}</{{ section.settings.text_style }}>
+              {%- endcase -%}
+            {%- endif -%}
+            {%- if section.settings.quick_enable -%}
+  <form method="post" action="/cart/add" class="pg__qa" data-quick-add>
+
+      <a class="pg__add button button--primary"
+         href="{{ product.url }}"
+         aria-label="{{ section.settings.quick_view_label | default: 'View product' }}: {{ product.title | escape }}">
+        {{ section.settings.quick_view_label | default: 'View product' }}
+      </a>
+
+
+    {%- if product.available -%}
+      <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+      <button type="submit"
+              class="pg__add button button--{{ section.settings.quick_style | default: 'secondary' }}"
+              aria-label="{{ section.settings.quick_label | default: 'Add to cart' }}: {{ product.title | escape }}">
+        {{ section.settings.quick_label | default: 'Add to cart' }}
+      </button>
+    {%- else -%}
+      <span class="pg__add button button--{{ section.settings.quick_style | default: 'secondary' }}" aria-disabled="true">
+        {{ section.settings.quick_soldout_text | default: 'Sold out' }}
+      </span>
+    {%- endif -%}
+
+    <span class="pg__msg" aria-live="polite"></span>
+  </form>
+  {% else %}
+<a class="pg__add button button--primary"
+         href="{{ product.url }}"
+         aria-label="{{ section.settings.quick_view_label | default: 'View product' }}: {{ product.title | escape }}">
+        {{ section.settings.quick_view_label | default: 'View product' }}
+      </a>
+{%- endif -%}
+
+
+          </article>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+<script>
+(() => {
+  const root = document.currentScript.closest('.pcg-{{ section.id }}');
+  if (!root) return;
+
+  root.querySelectorAll('form[data-quick-add]').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+      // Progressive enhancement: if fetch not available, fall back to normal submit
+      if (!window.fetch) return;
+
+      e.preventDefault();
+      const btn  = form.querySelector('.pg__add[type="submit"]');
+      const msg  = form.querySelector('.pg__msg');
+      if (!btn) return;
+
+      btn.disabled = true;
+      const original = btn.textContent;
+
+      try {
+        const fd = new FormData(form);
+        const res = await fetch('/cart/add.js', { method: 'POST', body: fd, headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Add failed');
+        const item = await res.json();
+
+        // Feedback
+        if (msg) msg.textContent = '{{ section.settings.quick_added_text | default: "Added!" }}';
+
+        // Bump cart count if present
+        const countEl = document.querySelector('[data-cart-count]');
+        if (countEl) {
+          const current = parseInt(countEl.textContent, 10) || 0;
+          countEl.textContent = current + 1;
+        }
+
+        // Brief "Added!" flash on button
+        btn.textContent = '{{ section.settings.quick_added_text | default: "Added!" }}';
+        setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1200);
+
+        // Optionally open cart drawer if your theme listens to this
+        document.dispatchEvent(new CustomEvent('cart:updated', { detail: { item } }));
+
+      } catch (err) {
+        if (msg) msg.textContent = 'Sorry, try again';
+        btn.disabled = false;
+      }
+    });
+  });
+})();
+</script>
+
+
+{% schema %}
+{
+  "name": "Product collection grid",
+  "tag": "section",
+  "class": "section--product-collection",
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" },
+    { "type": "range", "id": "max_width", "label": "Max width", "min": 600, "max": 1600, "step": 20, "unit": "px", "default": 1200 },
+
+    { "type": "header", "content": "Header" },
+    { "type": "text", "id": "kicker", "label": "Kicker" },
+    { "type": "text", "id": "title",  "label": "Title" },
+    { "type": "select", "id": "title_tag", "label": "Title tag", "default": "h2",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" },
+        { "value": "h4", "label": "H4" },
+        { "value": "h5", "label": "H5" },
+        { "value": "h6", "label": "H6" }
+      ]
+    },
+    { "type": "select", "id": "head_align", "label": "Header alignment", "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    { "type": "range", "id": "head_gap", "label": "Header gap", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 12 },
+    { "type": "range", "id": "head_margin_bottom", "label": "Space under header", "min": 0, "max": 80, "step": 2, "unit": "px", "default": 24 },
+
+    { "type": "header", "content": "Products" },
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    { "type": "range", "id": "limit", "label": "Max products to show", "min": 1, "max": 50, "step": 1, "default": 12 },
+
+    { "type": "header", "content": "Grid" },
+    { "type": "select", "id": "cols_mobile", "label": "Products per row (tablet ≥750px)", "default": "2",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" }
+      ]
+    },
+    { "type": "select", "id": "cols_desktop", "label": "Products per row (desktop ≥990px)", "default": "3",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ]
+    },
+    { "type": "range", "id": "grid_gap", "label": "Spacing between cards", "min": 0, "max": 64, "step": 2, "unit": "px", "default": 24 },
+    { "type": "range", "id": "card_gap", "label": "Spacing within a card (title/image)", "min": 0, "max": 40, "step": 2, "unit": "px", "default": 10 },
+
+    { "type": "select", "id": "row_align", "label": "Last row alignment", "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    { "type": "select", "id": "row_valign", "label": "Row vertical alignment", "default": "stretch",
+      "options": [
+        { "value": "stretch", "label": "Stretch (equal heights)" },
+        { "value": "top", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ]
+    },
+
+    { "type": "header", "content": "Product title display" },
+    { "type": "checkbox", "id": "show_product_title", "label": "Show product title", "default": true },
+    { "type": "select", "id": "title_position", "label": "Title position", "default": "overlay",
+      "options": [
+        { "value": "overlay", "label": "Overlay on image" },
+        { "value": "above", "label": "Above image" },
+        { "value": "below", "label": "Below image" }
+      ]
+    },
+    { "type": "select", "id": "text_style", "label": "Title style", "default": "h4",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" },
+        { "value": "h4", "label": "H4" },
+        { "value": "h5", "label": "H5" },
+        { "value": "h6", "label": "H6" },
+        { "value": "body", "label": "Body text" },
+        { "value": "button", "label": "Button" }
+      ]
+    },
+    { "type": "select", "id": "title_ab_align", "label": "Above/below title alignment", "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+
+    { "type": "header", "content": "Quick Add" },
+{ "type": "checkbox", "id": "quick_enable", "label": "Enable quick add", "default": true },
+{ "type": "text", "id": "quick_label", "label": "Button label", "default": "Add to cart" },
+{ "type": "select", "id": "quick_style", "label": "Button style", "default": "secondary",
+  "options": [
+    { "value": "primary", "label": "Primary" },
+    { "value": "secondary", "label": "Secondary" }
+  ]
+},
+{ "type": "text", "id": "quick_added_text", "label": "Added feedback text", "default": "Added!" },
+{ "type": "text", "id": "quick_soldout_text", "label": "Sold out text", "default": "Sold out" },
+
+    { "type": "header", "content": "Overlay" },
+    { "type": "range", "id": "overlay_pad", "label": "Overlay padding", "min": 0, "max": 60, "step": 2, "unit": "px", "default": 16 },
+    { "type": "select", "id": "overlay_h", "label": "Horizontal", "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    { "type": "select", "id": "overlay_v", "label": "Vertical", "default": "center",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ]
+    },
+    { "type": "range", "id": "overlay_opacity", "label": "Overlay opacity", "min": 0, "max": 1, "step": 0.1, "default": 0.3 },
+    { "type": "color", "id": "overlay_text_color", "label": "Overlay text color", "default": "#ffffff" },
+
+    { "type": "header", "content": "Images" },
+    { "type": "text", "id": "aspect_ratio", "label": "Image aspect ratio (e.g. 4 / 3, 1 / 1, 16 / 9)", "default": "16 / 9" },
+
+    { "type": "header", "content": "Section padding" },
+{ "type": "range", "id": "pad_top", "label": "Padding top", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 40 },
+{ "type": "range", "id": "pad_bottom", "label": "Padding bottom", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 40 }
+  ],
+  "blocks": [],
+  "presets": [
+    { "name": "Product collection grid" }
+  ]
+}
+{% endschema %}

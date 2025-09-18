@@ -1,0 +1,25 @@
+{%- assign labels = '' | split: '' -%}
+{%- assign tag_map = block.settings.tag_map | default: '' | split: ',' -%}
+{%- for pair in tag_map -%}
+  {%- assign kv = pair | split: ':' -%}
+  {%- assign key = kv[0] | strip -%}
+  {%- assign val = kv[1] | strip -%}
+  {%- if key != blank and product.tags contains key -%}
+    {%- assign labels = labels | push: val -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{%- if block.settings.use_metafields and product.metafields.badges.flags.value != blank -%}
+  {%- assign labels = labels | concat: product.metafields.badges.flags.value -%}
+{%- endif -%}
+{%- assign labels = labels | uniq -%}
+
+{%- if labels.size > 0 -%}
+<div class="prd-badges" aria-label="Badges">
+  <ul class="prd-badges__list">
+    {%- for label in labels limit: block.settings.max_badges -%}
+      <li class="prd-badge">{{ label }}</li>
+    {%- endfor -%}
+  </ul>
+</div>
+{%- endif -%}

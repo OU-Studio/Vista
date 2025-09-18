@@ -1,0 +1,40 @@
+{%- assign style = variant_style | default: 'pills' -%}
+
+<form class="variant-form" data-variant-form data-update-url="{{ update_url | default: true }}">
+  <!-- Hidden canonical select for POST -->
+  <select name="id" class="sr-only" aria-hidden="true" tabindex="-1">
+    {% for v in product.variants %}
+      <option value="{{ v.id }}" {% if v.id == product.selected_or_first_available_variant.id %}selected{% endif %}>
+        {{ v.title | escape }}
+      </option>
+    {% endfor %}
+  </select>
+
+  {% if style == 'dropdown' %}
+    {% for option in product.options_with_values %}
+      <label class="opt__name" for="opt-{{ forloop.index0 }}">{{ option.name }}</label>
+      <select id="opt-{{ forloop.index0 }}" class="opt__select" data-opt-index="{{ forloop.index0 }}">
+        {% for value in option.values %}
+          <option value="{{ value | escape }}" {% if product.selected_or_first_available_variant.options[forloop.parentloop.index0] == value %}selected{% endif %}>
+            {{ value }}
+          </option>
+        {% endfor %}
+      </select>
+    {% endfor %}
+  {% else %}
+    {% for option in product.options_with_values %}
+      <fieldset class="opt" data-opt-index="{{ forloop.index0 }}">
+        <legend class="opt__name">{{ option.name }}</legend>
+        <div class="opt__values">
+          {% for value in option.values %}
+            <button type="button"
+              class="opt__btn{% if product.selected_or_first_available_variant.options[forloop.parentloop.index0] == value %} is-selected{% endif %}"
+              data-value="{{ value | escape }}">
+              <span>{{ value }}</span>
+            </button>
+          {% endfor %}
+        </div>
+      </fieldset>
+    {% endfor %}
+  {% endif %}
+</form>

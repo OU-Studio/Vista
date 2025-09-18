@@ -10,8 +10,36 @@
 {
   "sections": {
     "main": {
-      "type": "collections",
-      "settings": {}
+      "type": "list-collection",
+      "settings": {
+        "color_scheme": "",
+        "max_width": 1280,
+        "kicker": "",
+        "title": "All Collections",
+        "title_tag": "h2",
+        "head_align": "left",
+        "head_gap": 22,
+        "head_margin_bottom": 52,
+        "cols_mobile": "2",
+        "cols_desktop": "2",
+        "grid_gap": 40,
+        "card_gap": 20,
+        "row_align": "center",
+        "row_valign": "center",
+        "show_collection_title": true,
+        "title_position": "overlay",
+        "text_style": "h6",
+        "overlay_h": "left",
+        "overlay_pad": 36,
+        "overlay_v": "bottom",
+        "overlay_opacity": 0.5,
+        "overlay_text_color": "#ffffff",
+        "aspect_ratio": "1 / 1",
+        "fallback_first_product": true,
+        "skip_frontpage": true,
+        "show_empty": true,
+        "limit": 20
+      }
     }
   },
   "order": [
