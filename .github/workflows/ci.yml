@@ -1,12 +1,26 @@
 name: CI
 on: [push]
+
 jobs:
   theme-check:
     name: Theme Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Run Theme Check v2 (TypeScript) on your repo
       - name: Theme Check
         uses: shopify/theme-check-action@v2
         with:
-          token: ${{ github.token }}
+          theme_root: '.'                 # or './dist' if you build
+          token: ${{ github.token }}      # enables inline annotations
+          base: main                      # compare against main for PR annotations
+          flags: "--fail-level error --no-color --output json --output-file theme-check-report.json"
+
+      # Save the JSON report as an artifact you can download
+      - name: Upload Theme Check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: theme-check-report
+          path: theme-check-report.json
