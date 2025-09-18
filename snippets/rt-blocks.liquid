@@ -36,17 +36,14 @@ Classes are lightweight (rt__*) so you can style in your section CSS.
     </div>
 
   {%- when 'button' -%}
-    {%- assign label = b.settings.label | default: 'Learn more' -%}
-    {%- assign url = b.settings.url | default: routes.root_url -%}
-    <div class="rt__button-wrap" {{ b.shopify_attributes }}>
-      {%- comment -%} Try theme button snippet if it exists; otherwise plain <a> {%- endcomment -%}
-      {%- capture _try_button -%}{% render 'button', label: label, url: url, style: b.settings.style %}{%- endcapture -%}
-      {%- if _try_button contains '<' -%}
-        {{ _try_button }}
-      {%- else -%}
-        <a href="{{ url }}" class="button button--{{ b.settings.style | default: 'primary' }}">{{ label }}</a>
-      {%- endif -%}
-    </div>
+  {%- assign label = b.settings.label | default: 'Learn more' -%}
+  {%- assign url = b.settings.url | default: routes.root_url -%}
+  <div class="rt__button-wrap" {{ b.shopify_attributes }}>
+    <a class="button button--{{ b.settings.style | default: 'primary' }}" href="{{ url }}">
+      {{ label }}
+    </a>
+  </div>
+
 
   {%- when 'image' -%}
     {%- if b.settings.image != blank -%}

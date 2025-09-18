@@ -21,7 +21,7 @@ Notes:
   assign show_title  = section.settings.title 
 -%}
 
-<style>
+{% style %}
   .acg-{{ section.id }} { }
   .acg-{{ section.id }} .acg__wrap {
     margin-inline: auto;
@@ -81,84 +81,84 @@ Notes:
   }
 
   /* In your section <style> block, add: */
-.acg-{{ section.id }} .cg > .cg__btn {
-  display: inline-flex;          /* shrink to content */
-  width: auto;                   /* don’t fill parent */
-  max-width: max-content;        /* clamp to text width */
-  align-self: start;             /* left-align by default; change to center/end if you want */
-}
-
-/* If something upstream forces width:100%, hard-override it */
-.acg-{{ section.id }} .cg > .cg__btn {
-  width: auto !important;
-}
-
-/* Card is a grid; use justify-self to position the title node */
-.acg-{{ section.id }} .cg--ta-left  > .cg__title,
-.acg-{{ section.id }} .cg--ta-left  > .cg__btn  { justify-self: start; text-align: left; }
-
-.acg-{{ section.id }} .cg--ta-center > .cg__title,
-.acg-{{ section.id }} .cg--ta-center > .cg__btn { justify-self: center; text-align: center; }
-
-.acg-{{ section.id }} .cg--ta-right > .cg__title,
-.acg-{{ section.id }} .cg--ta-right > .cg__btn  { justify-self: end; text-align: right; }
-
-
-  /* Card */
-  .acg-{{ section.id }} .cg__media {
-    position: relative;
-    overflow: hidden;
-    border-radius: {{ settings.radius | default: 0 }}px;
-    aspect-ratio: {{ section.settings.aspect_ratio | default: '16 / 9' }};
-    background: rgba(0,0,0,.05);
-  }
-  .acg-{{ section.id }} .cg__media img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
+  .acg-{{ section.id }} .cg > .cg__btn {
+    display: inline-flex;          /* shrink to content */
+    width: auto;                   /* don’t fill parent */
+    max-width: max-content;        /* clamp to text width */
+    align-self: start;             /* left-align by default; change to center/end if you want */
   }
 
-  /* Overlay title */
+  /* If something upstream forces width:100%, hard-override it */
+  .acg-{{ section.id }} .cg > .cg__btn {
+    width: auto !important;
+  }
+
+  /* Card is a grid; use justify-self to position the title node */
+  .acg-{{ section.id }} .cg--ta-left  > .cg__title,
+  .acg-{{ section.id }} .cg--ta-left  > .cg__btn  { justify-self: start; text-align: left; }
+
+  .acg-{{ section.id }} .cg--ta-center > .cg__title,
+  .acg-{{ section.id }} .cg--ta-center > .cg__btn { justify-self: center; text-align: center; }
+
+  .acg-{{ section.id }} .cg--ta-right > .cg__title,
+  .acg-{{ section.id }} .cg--ta-right > .cg__btn  { justify-self: end; text-align: right; }
+
+
+    /* Card */
+    .acg-{{ section.id }} .cg__media {
+      position: relative;
+      overflow: hidden;
+      border-radius: {{ settings.radius | default: 0 }}px;
+      aspect-ratio: {{ section.settings.aspect_ratio | default: '16 / 9' }};
+      background: rgba(0,0,0,.05);
+    }
+    .acg-{{ section.id }} .cg__media img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+
+    /* Overlay title */
+    .acg-{{ section.id }} .cg__overlay {
+      position: absolute; inset: 0;
+      display: flex;
+      padding: {{ section.settings.overlay_pad | default: 16 }}px;
+      pointer-events: none;
+    }
+    .acg-{{ section.id }} .cg__overlay-inner {
+      pointer-events: auto; /* keep links clickable when using "button" style */
+    }
+
+    /* Above/Below spacing */
+    .acg-{{ section.id }} .cg__title { margin: 0; text-align: {{ section.settings.overlay_h }} }
+    .acg-{{ section.id }} .cg__title--above { order: -1; }
+
+    /* Scrim behind overlay text (uses --scrim) */
   .acg-{{ section.id }} .cg__overlay {
     position: absolute; inset: 0;
     display: flex;
     padding: {{ section.settings.overlay_pad | default: 16 }}px;
     pointer-events: none;
   }
-  .acg-{{ section.id }} .cg__overlay-inner {
-    pointer-events: auto; /* keep links clickable when using "button" style */
+
+  .acg-{{ section.id }} .cg__overlay::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: rgba(0,0,0, var(--scrim, 0)); /* 0..1 */
   }
 
-  /* Above/Below spacing */
-  .acg-{{ section.id }} .cg__title { margin: 0; text-align: {{ section.settings.overlay_h }} }
-  .acg-{{ section.id }} .cg__title--above { order: -1; }
+  .acg-{{ section.id }} .cg__overlay-inner {
+    position: relative;
+    pointer-events: auto;
+    color: var(--overlay-text, currentColor); /* falls back to currentColor */
+  }
 
-  /* Scrim behind overlay text (uses --scrim) */
-.acg-{{ section.id }} .cg__overlay {
-  position: absolute; inset: 0;
-  display: flex;
-  padding: {{ section.settings.overlay_pad | default: 16 }}px;
-  pointer-events: none;
-}
-
-.acg-{{ section.id }} .cg__overlay::before {
-  content: "";
-  position: absolute; inset: 0;
-  background: rgba(0,0,0, var(--scrim, 0)); /* 0..1 */
-}
-
-.acg-{{ section.id }} .cg__overlay-inner {
-  position: relative;
-  pointer-events: auto;
-  color: var(--overlay-text, currentColor); /* falls back to currentColor */
-}
-
-.acg-{{ section.id }}-pad {
-  padding-top: {{ section.settings.pad_top | default: 40 }}px;
-  padding-bottom: {{ section.settings.pad_bottom | default: 40 }}px;
-}
+  .acg-{{ section.id }}-pad {
+    padding-top: {{ section.settings.pad_top | default: 40 }}px;
+    padding-bottom: {{ section.settings.pad_bottom | default: 40 }}px;
+  }
 
 
 
-</style>
+{% endstyle %}
 
 <section class="acg-{{ section.id }} color-scheme color-scheme-{{ scheme }} acg-{{ section.id }}-pad">
   <div class="acg__wrap">
@@ -234,7 +234,7 @@ Notes:
                     align-items: {% case section.settings.overlay_v %}{% when 'top' %}flex-start{% when 'bottom' %}flex-end{% else %}center{% endcase %};
                   ">
                 <div class="cg__overlay-inner">
-                  {% render 'acg-title', c: c, style: section.settings.text_style, overlay: true %}
+                  {% render 'acg-title', c: c, style: section.settings.text_style %}
                 </div>
               </div>
             {% endif %}
@@ -249,31 +249,6 @@ Notes:
     </div>
   </div>
 </section>
-
-{% comment %}
-Small snippet-like include to keep title rendering DRY without a separate file.
-Accepts:
-- c: collection object
-- style: 'h1'..'h6' | 'body' | 'button'
-- overlay: boolean (optional) – when true, allow button to be clickable on overlay
-{% endcomment %}
-{%- capture _acg_title -%}
-{%- liquid
-  assign _c = c
-  assign _style = style | default: 'h3'
-  assign _overlay = overlay | default: false
-  assign label = _c.title
--%}
-{%- case _style -%}
-  {%- when 'body' -%}
-    <div class="cg__title">{{ label | escape }}</div>
-  {%- when 'button' -%}
-    <a class="cg__btn button button--primary" href="{{ _c.url }}">{{ label | escape }}</a>
-  {%- else -%}
-    <{{ _style }} class="cg__title">{{ label | escape }}</{{ _style }}>
-{%- endcase -%}
-{%- endcapture -%}
-{%- assign __ = _acg_title -%}{% comment %} noop to satisfy Liquid {% endcomment %}
 
 {% schema %}
 {
@@ -353,7 +328,7 @@ Accepts:
     },
     { "type": "select", "id": "text_style", "label": "Title style", "default": "h3",
       "options": [
-        { "value": "h1", "label": "H1" },
+        { "value": "h1", "label": "H1" }, 
         { "value": "h2", "label": "H2" },
         { "value": "h3", "label": "H3" },
         { "value": "h4", "label": "H4" },
@@ -381,7 +356,7 @@ Accepts:
       ]
     },
     { "type": "range", "id": "overlay_opacity", "label": "Overlay opacity", "min": 0, "max": 1, "step": 0.1, "default": 0.3 },
-{ "type": "color", "id": "overlay_text_color", "label": "Overlay text color", "default": "#ffffff" },
+    { "type": "color", "id": "overlay_text_color", "label": "Overlay text color", "default": "#ffffff" },
 
     { "type": "header", "content": "Images & data" },
     { "type": "text", "id": "aspect_ratio", "label": "Image aspect ratio (e.g. 4 / 3, 1 / 1, 16 / 9)", "default": "16 / 9" },
@@ -391,8 +366,8 @@ Accepts:
     { "type": "range", "id": "limit", "label": "Max collections to show", "min": 1, "max": 100, "step": 1, "default": 20 },
 
     { "type": "header", "content": "Section padding" },
-{ "type": "range", "id": "pad_top", "label": "Padding top", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 40 },
-{ "type": "range", "id": "pad_bottom", "label": "Padding bottom", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 40 }
+    { "type": "range", "id": "pad_top", "label": "Padding top", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 40 },
+    { "type": "range", "id": "pad_bottom", "label": "Padding bottom", "min": 0, "max": 160, "step": 4, "unit": "px", "default": 40 }
   ],
   "blocks": [],
   "presets": [

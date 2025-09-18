@@ -48,26 +48,21 @@ hdr--{{ section.settings.layout_alignment }}
       <!-- Mobile menu button -->
       <button class="hdr__menu-btn" aria-controls="mobile-nav" aria-expanded="false">
         {% render 'icon', name: 'menu' %}
-        <span class="sr-only">{{ 'general.accessibility.menu' | t | default: 'Menu' }}</span>
+        <span class="sr-only">Menu</span>
       </button>
 
       <!-- Logo -->
       <a class="hdr__logo" href="{{ routes.root_url }}" aria-label="{{ shop.name }}">
-        {% if section.settings.logo != blank %}
-          <img
-            src="{{ section.settings.logo | img_url: '200x' }}"
-            srcset="{{ section.settings.logo | img_url: '200x' }} 1x, {{ section.settings.logo | img_url: '400x' }} 2x"
-            width="{{ section.settings.logo_width | default: 140 }}"
-            style="max-width: {{ section.settings.logo_width | default: 140 }}px"
-            alt="{{ section.settings.logo_alt | escape | default: shop.name }}"
-            loading="eager">
-        {% else %}
-          <span class="hdr__logo-text">{{ shop.name }}</span>
-        {% endif %}
+        {% if section.settings.logo %}
+  {{ section.settings.logo
+     | image_url: width: section.settings.logo_width | default: 140
+     | image_tag: alt: section.settings.logo_alt | default: shop.name,
+                  loading: 'eager' }}
+{% endif %}
       </a>
 
       <!-- Desktop navigation -->
-      <nav class="hdr__nav" aria-label="{{ 'layout.navigation.main' | t | default: 'Main menu' }}">
+      <nav class="hdr__nav" aria-label="Main menu">
         <ul class="hdr__menu">
           {% for link in linklists[section.settings.menu].links %}
             <li class="hdr__item {% if link.links.size > 0 and settings.menu_style == 'mega' %}has-mega{% elsif link.links.size > 0 %}has-dropdown{% endif %}">
@@ -124,19 +119,19 @@ hdr--{{ section.settings.layout_alignment }}
       <!-- Utilities -->
       <div class="hdr__utils">
         {% if section.settings.show_search %}
-          <a class="hdr__util" href="{{ routes.search_url }}" aria-label="{{ 'general.accessibility.search' | t | default: 'Search' }}">
+          <a class="hdr__util" href="{{ routes.search_url }}" aria-label="Search">
             {% render 'icon', name: 'search' %}
           </a>
         {% endif %}
 
         {% if shop.customer_accounts_enabled and section.settings.show_account %}
-          <a class="hdr__util" href="{{ routes.account_url }}" aria-label="{{ 'general.accessibility.account' | t | default: 'Account' }}">
+          <a class="hdr__util" href="{{ routes.account_url }}" aria-label="Account">
             {% render 'icon', name: 'user' %}
           </a>
         {% endif %}
 
         {% if section.settings.show_cart %}
-          <a class="hdr__util hdr__cart" href="{{ routes.cart_url }}" aria-label="{{ 'general.accessibility.cart' | t | default: 'Cart' }}" data-cart-open>
+          <a class="hdr__util hdr__cart" href="{{ routes.cart_url }}" aria-label="Cart" data-cart-open>
             {% render 'icon', name: 'cart' %}
             <span class="hdr__cart-count" data-cart-count>{{ cart.item_count }}</span>
           </a>
@@ -148,12 +143,12 @@ hdr--{{ section.settings.layout_alignment }}
   <!-- Mobile drawer -->
   <div id="mobile-nav" class="mnav" hidden>
     <div class="mnav__header">
-      <span>{{ 'layout.navigation.main' | t | default: 'Menu' }}</span>
-      <button class="mnav__close" aria-label="{{ 'general.accessibility.close' | t | default: 'Close' }}">
+      <span>Menu</span>
+      <button class="mnav__close" aria-label="Close">
         {% render 'icon', name: 'x' %}
       </button>
     </div>
-    <nav class="mnav__body" aria-label="{{ 'layout.navigation.main' | t | default: 'Main menu' }}">
+    <nav class="mnav__body" aria-label="Main menu">
       <ul class="mnav__menu">
         {% for link in linklists[section.settings.menu].links %}
           <li class="mnav__item">

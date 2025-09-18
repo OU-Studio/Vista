@@ -1,9 +1,19 @@
 {%- comment -%} Uses metafields for rich content {%- endcomment -%}
-{% assign tabs = '' | split: '' %}
-{% if product.metafields.details.materials != blank %}{% assign tabs = tabs | push: 'Materials' %}{% endif %}
-{% if product.metafields.details.dimensions != blank %}{% assign tabs = tabs | push: 'Dimensions' %}{% endif %}
-{% if product.metafields.details.care != blank %}{% assign tabs = tabs | push: 'Care' %}{% endif %}
-{% if shop.shipping_policy.body != blank %}{% assign tabs = tabs | push: 'Shipping & Returns' %}{% endif %}
+{%- assign tabs_csv = '' -%}
+{%- if product.metafields.details.materials != blank -%}
+  {%- assign tabs_csv = tabs_csv | append: 'Materials|' -%}
+{%- endif -%}
+{%- if product.metafields.details.dimensions != blank -%}
+  {%- assign tabs_csv = tabs_csv | append: 'Dimensions|' -%}
+{%- endif -%}
+{%- if product.metafields.details.care != blank -%}
+  {%- assign tabs_csv = tabs_csv | append: 'Care|' -%}
+{%- endif -%}
+{%- if shop.shipping_policy.body != blank -%}
+  {%- assign tabs_csv = tabs_csv | append: 'Shipping & Returns|' -%}
+{%- endif -%}
+
+{%- assign tabs = tabs_csv | split: '|' | compact -%}
 
 {% if tabs.size > 0 %}
 <div class="tabs" data-tabs>

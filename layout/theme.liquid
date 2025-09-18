@@ -4,16 +4,16 @@
     {%- comment -%}
       Resolve the default scheme's background for the browser UI color.
     {%- endcomment -%}
-    {%- assign __theme_color = '#ffffff' -%}
-    {%- assign __default_scheme = settings.default_color_scheme | default: 'scheme-1' -%}
-    {%- for __s in settings.color_schemes -%}
-      {%- if __s.id == __default_scheme and __s.settings.background -%}
-        {%- assign __theme_color = __s.settings.background -%}
-      {%- elsif __s.id == __default_scheme and __s.settings.background_color -%}
-        {%- assign __theme_color = __s.settings.background_color -%}
+    {%- assign theme_color = '#ffffff' -%}
+    {%- assign default_scheme = settings.default_color_scheme | default: 'scheme-1' -%}
+    {%- for s in settings.color_schemes -%}
+      {%- if s.id == default_scheme and s.settings.background -%}
+        {%- assign theme_color = s.settings.background -%}
+      {%- elsif s.id == default_scheme and s.settings.background_color -%}
+        {%- assign theme_color = s.settings.background_color -%}
       {%- endif -%}
     {%- endfor -%}
-    <meta name="theme-color" content="{{ __theme_color }}">
+    <meta name="theme-color" content="{{ theme_color }}">
 
     {%- comment -%} Social, SEO, title, etc. {%- endcomment -%}
     {% render 'meta-tags' %}
@@ -150,9 +150,9 @@
       {% render 'cart-drawer' %}
    {% endif %}
 
-{{ 'gsap.min.js' | asset_url | script_tag }}
-{{ 'ScrollTrigger.min.js' | asset_url | script_tag }}
-{{ 'anim.js' | asset_url | script_tag}}
+<script src="{{ 'gsap.min.js' | asset_url }}" defer></script>
+<script src="{{ 'ScrollTrigger.min.js' | asset_url }}" defer></script>
+<script src="{{ 'anim.js' | asset_url }}" defer></script>
 
 
 

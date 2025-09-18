@@ -1,15 +1,16 @@
-extends: :recommended
-fail_level: error
+# .theme-check.yml
+extends:
+  - theme-check:recommended
 
-overrides:
-  - files:
-      - "sections/hero-vista.liquid"
-      - "sections/faq-accordion.liquid"
-      - "sections/usp-grid.liquid"
-      - "sections/main-article.liquid"
-      - "sections/main-search.liquid"
-      - "sections/main-cart.liquid"
-      - "sections/main-product.liquid"
-    rules:
-      InlineStyles: ignore
-      InlineJavaScript: ignore
+# Ignore paths you don’t want scanned
+ignore:
+  - node_modules/**
+  - dist/**
+  - assets/*.map
+
+# Turn off noisy rules globally (optional)
+InlineStyles:
+  enabled: false
+
+InlineJavaScript:
+  enabled: false

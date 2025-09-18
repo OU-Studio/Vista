@@ -235,7 +235,7 @@ Product Collection Grid
               {%- endcase -%}
             {%- endif -%}
             {%- if section.settings.quick_enable -%}
-  <form method="post" action="/cart/add" class="pg__qa" data-quick-add>
+  <form method="post" action="{{ routes.cart_add_url }}" class="pg__qa" data-quick-add>
 
       <a class="pg__add button button--primary"
          href="{{ product.url }}"

@@ -5,8 +5,9 @@ Rich Text (Groups) with responsive columns + per-group inner gap + image above/b
 {%- liquid
   assign scheme = section.settings.color_scheme | default: settings.default_color_scheme | default: 'scheme-1'
   assign maxw   = section.settings.max_width | default: 1200
-  assign align  = section.settings.text_align | default: 'center'
 -%}
+
+{%- assign text_align = section.settings.text_align | default: 'center' -%}
 
 <style>
   .section-{{ section.id }}-pad {
@@ -46,9 +47,11 @@ Rich Text (Groups) with responsive columns + per-group inner gap + image above/b
 
     /* horizontal alignment of leftover items in the last row */
     justify-content:
-      {% if section.settings.text_align == 'left' %}flex-start
-      {% elsif section.settings.text_align == 'right' %}flex-end
-      {% else %}center{% endif %};
+    {% case text_align %}
+      {% when 'left' %}flex-start
+      {% when 'right' %}flex-end
+      {% else %}center
+    {% endcase %};
 
     /* vertical alignment of items within each row */
     align-items:

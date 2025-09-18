@@ -7,31 +7,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      # 1) Run the official action for inline annotations. No custom flags.
-      - name: Theme Check (annotations)
+      - name: Theme Check
         uses: shopify/theme-check-action@v2
         with:
-          token: ${{ github.token }}    # enables PR/file annotations
-          theme_root: '.'               # change if your theme is in a subfolder
-          base: main                    # for PRs; safe on push too
-
-      # 2) Also run the Ruby CLI to produce a JSON report we can always upload
+          theme_root: '.'          # adjust if your theme is in a subfolder
+          token: ${{ github.token }} # enables inline annotations
+          base: main               # optional, nice for PRs
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
-      - name: Install theme-check
+      - name: Install theme-check (Ruby CLI)
         run: gem install theme-check
-      - name: Generate JSON report (won’t fail job)
-        # Write a report regardless of errors; don't re-fail the job here
-        run: |
-          theme-check --fail-level=error --no-color --format json > theme-check-report.json || true
-
-      # 3) Upload the report so you can download it from the run
+      - name: Generate JSON report (don’t fail this step)
+        run: theme-check --no-color --format json > theme-check-report.json || true
       - name: Upload Theme Check report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: theme-check-report
           path: theme-check-report.json
+

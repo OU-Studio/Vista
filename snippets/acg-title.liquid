@@ -1,13 +1,18 @@
-{%- assign _c = c -%}
-{%- assign _style = style | default: 'h3' -%}
-{%- assign _overlay = overlay | default: false -%}
-{%- assign label = _c.title -%}
+{%- comment -%}
+acg-title
+Inputs:
+- c: collection object
+- style: 'h1'..'h6' | 'body' | 'button'
+{%- endcomment -%}
 
-{%- case _style -%}
+{%- assign label = c.title -%}
+{%- assign style_choice = style | default: 'h3' -%}
+
+{%- case style_choice -%}
   {%- when 'body' -%}
     <div class="cg__title">{{ label | escape }}</div>
   {%- when 'button' -%}
-    <a class="cg__btn button button--primary" href="{{ _c.url }}">{{ label | escape }}</a>
+    <a class="cg__btn button button--primary" href="{{ c.url }}">{{ label | escape }}</a>
   {%- else -%}
-    <{{ _style }} class="cg__title">{{ label | escape }}</{{ _style }}>
+    <{{ style_choice }} class="cg__title">{{ label | escape }}</{{ style_choice }}>
 {%- endcase -%}

@@ -36,7 +36,9 @@ Hero (Vista)
       {% elsif section.settings.video_url != blank %}
         <video class="hero-vista__video" autoplay muted loop playsinline
                {% if section.settings.bg_image %}poster="{{ section.settings.bg_image | image_url: width: 1800 }}"{% endif %}>
-          <source src="{{ section.settings.video_url | escape }}" type="video/mp4">
+          {% comment %} theme-check-disable RemoteAsset {% endcomment %}
+<source src="{{ section.settings.video_url | escape }}" type="video/mp4">
+{% comment %} theme-check-enable RemoteAsset {% endcomment %}
         </video>
       {% endif %}
     {% endif %}

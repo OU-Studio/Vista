@@ -39,7 +39,7 @@
         <input id="Quantity-{{ section.id }}" class="qty-input" name="quantity" type="number" min="1" value="1" inputmode="numeric">
       </div>
 
-      <form method="post" action="/cart/add" class="prd-buy" data-product-form>
+      <form method="post" action="{{ routes.cart_add_url }}" class="prd-buy" data-product-form>
         <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}" data-variant-id>
         <input type="hidden" name="quantity" value="1" data-qty-hidden>
         <button type="submit" class="btn btn--primary" data-atc>
@@ -105,4 +105,4 @@
 {% endschema %}
 
 {{ 'product.css' | asset_url | stylesheet_tag: preload: true }}
-{{ 'product.js'  | asset_url | script_tag }}
+<script src="{{ 'product.js' | asset_url }}" defer></script>
